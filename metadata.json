@@ -1,0 +1,6 @@
+{
+  "name": "FamCare",
+  "description": "FamCare – An Agentic AI-Powered Food Intelligence and Family Health Recommendation System.",
+  "requestFramePermissions": ["camera"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
