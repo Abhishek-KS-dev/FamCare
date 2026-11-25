@@ -10,7 +10,7 @@ app.use(express.json({ limit: '2mb' }));
 
 app.use('/api', apiRouter);
 
-app.use('/api/*', (_req, res) => {
+app.use('/api', (_req, res) => {
 res.status(404).json({ error: 'API endpoint not found.' });
 });
 
@@ -19,7 +19,7 @@ let initializationPromise: Promise<void> | null = null;
 async function initialize() {
 if (!initializationPromise) {
 initializationPromise = initializeDatabase().then((status) => {
-console.log("[FamCare] Database: ${status.mode} — ${status.notice}");
+console.log(`[FamCare] Database: ${status.mode} — ${status.notice}`);
 
   if (status.mode !== 'mongodb') {
     throw new Error(
