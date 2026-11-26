@@ -144,3 +144,21 @@ export const PurchaseHistoryModel: Model<IPurchaseHistoryDoc> =
 export const MonthlyBudgetModel: Model<IMonthlyBudgetDoc> =
   (mongoose.models.MonthlyBudget as Model<IMonthlyBudgetDoc>) ||
   mongoose.model<IMonthlyBudgetDoc>('MonthlyBudget', MonthlyBudgetSchema);
+
+/**
+ * Validation schema / types for manual food intelligence requests.
+ */
+export interface ManualAnalysisRequestPayload {
+  taskType: 'manual_analysis';
+  product: Record<string, unknown>;
+  familyMemberId?: string | null;
+  requestAlternatives?: boolean;
+  rawEntryText?: string | null;
+}
+
+export function validateManualAnalysisPayload(data: unknown): { valid: boolean; rawEntryText?: string | null } {
+  if (!data || typeof data !== 'object') return { valid: false };
+  const d = data as Record<string, unknown>;
+  const rawEntryText = typeof d.rawEntryText === 'string' ? d.rawEntryText.trim() : null;
+  return { valid: Boolean(d.product && typeof d.product === 'object'), rawEntryText };
+}

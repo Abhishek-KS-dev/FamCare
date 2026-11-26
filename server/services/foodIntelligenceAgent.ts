@@ -41,6 +41,34 @@ function getGeminiClient(): GoogleGenAI | null {
 // Five Tool Declarations for the Central Food Intelligence Agent
 const AGENT_TOOL_DECLARATIONS: FunctionDeclaration[] = [
   {
+    name: 'interpret_natural_language_entry',
+    description:
+      'Extract food name, category, and approximate quantity from unstructured raw user entry text (e.g. "a handful of almonds", "a bunch of spinach", "one bowl of oatmeal"). Call this first when rawEntryText is present.',
+    parameters: {
+      type: Type.OBJECT,
+      properties: {
+        name: {
+          type: Type.STRING,
+          description: 'Cleaned food item name (e.g., "Almonds", "Fresh Spinach", "Oatmeal").',
+        },
+        category: {
+          type: Type.STRING,
+          description:
+            'Best fitting unpackaged food category: Vegetables, Fruits, Grains & Rice, Meat & Poultry, Fish & Seafood, Dairy & Eggs, Sugar & Sweeteners, Legumes & Pulses, Nuts & Seeds, Herbs & Spices, or Other Unpackaged Food.',
+        },
+        quantity: {
+          type: Type.STRING,
+          description: 'Approximate or interpreted quantity/portion (e.g., "1 handful (~30g)", "1 bunch", "1 bowl").',
+        },
+        reason: {
+          type: Type.STRING,
+          description: 'Rationale for extracted food details.',
+        },
+      },
+      required: ['name', 'category', 'reason'],
+    },
+  },
+  {
     name: 'retrieve_product_info',
     description:
       'TOOL 1: Retrieve structured food product details from Open Food Facts using a barcode number, or inspect currently provided product information and identify missing fields.',
@@ -127,19 +155,21 @@ const AGENT_TOOL_DECLARATIONS: FunctionDeclaration[] = [
 ];
 
 const AGENT_SYSTEM_INSTRUCTION = `You are the central Food Intelligence Agent inside FamCare.
-Your role is to autonomously coordinate the 5 backend food-analysis tools to produce an accurate, grounded, privacy-safe analysis report.
+Your role is to autonomously coordinate the backend food-analysis tools to produce an accurate, grounded, privacy-safe analysis report.
 
 STRICT OPERATIONAL RULES:
-1. You NEVER invent ingredients, nutritional values, or allergens. You rely strictly on tool responses.
+1. You NEVER invent ingredients, nutritional values, or allergens. You rely strictly on tool responses. Missing nutritional values must remain missing and be reported as unavailable.
 2. You NEVER make medical diagnoses or override deterministic allergy/compatibility results.
 3. Privacy guarantee: You never see private family health profiles; tool 4 runs deterministically on the backend and returns anonymized status flags.
-4. Autonomous conditional workflow:
+4. Natural Language Entry:
+   - When rawEntryText is present in the task context, call interpret_natural_language_entry first to extract/confirm the food name, category, and approximate quantity before proceeding with analysis tools.
+5. Autonomous conditional workflow:
    - For a barcode task: call retrieve_product_info first. If productFound is false, STOP calling analysis tools and advise the user to use OCR Label Scanner or Manual Entry.
    - If product data is already supplied (OCR-verified or Manual Entry), inspect its fields and call analyze_ingredients_and_allergens (when ingredients exist or need flagging) and analyze_nutrition (when nutrition exists or needs missing-data reporting).
    - If hasSelectedFamilyMember is true, call check_family_compatibility.
    - Call recommend_alternatives ONLY when: (a) check_family_compatibility returns CONFLICT, OR (b) analyze_nutrition flags major high-threshold concerns and alternatives are helpful, OR (c) requestAlternatives is explicitly true. Do NOT wastefully call recommend_alternatives for a missing product or unpackaged single-ingredient raw foods unless there is a conflict or user requested alternatives.
    - If ingredients are missing on a packaged barcode product, clearly note that OCR label scanning or manual correction is needed.
-5. Keep your final response concise (3–5 clear sentences in plain prose, no markdown headings or bullet clutter): summarize the product findings, missing information warnings, whether any compatibility conflicts occurred (without inventing details you weren't given), and whether alternatives were retrieved.`;
+6. Keep your final response concise (3–5 clear sentences in plain prose, no markdown headings or bullet clutter): summarize the product findings, missing information warnings, whether any compatibility conflicts occurred (without inventing details you weren't given), and whether alternatives were retrieved.`;
 
 export interface RunAgentAnalysisInput {
   taskType: 'barcode_analysis' | 'ocr_analysis' | 'manual_analysis';
@@ -147,6 +177,7 @@ export interface RunAgentAnalysisInput {
   providedProduct?: ProductData | null;
   familyMember: FamilyMemberRecord | null;
   requestAlternatives?: boolean;
+  rawEntryText?: string | null;
 }
 
 interface AgentExecutionState {
@@ -183,6 +214,30 @@ async function executeAgentTool(
       status,
     });
   };
+
+  if (toolName === 'interpret_natural_language_entry') {
+    const rawName = typeof args.name === 'string' && args.name.trim() ? args.name.trim() : (state.product?.name || '');
+    const rawCategory = typeof args.category === 'string' && args.category.trim() ? args.category.trim() : (state.product?.category || 'Other Unpackaged Food');
+    const rawQuantity = typeof args.quantity === 'string' && args.quantity.trim() ? args.quantity.trim() : (state.product?.quantity || null);
+
+    if (state.product) {
+      state.product.name = rawName || state.product.name;
+      state.product.category = rawCategory || state.product.category;
+      state.product.categoriesTags = [state.product.category?.toLowerCase() || 'other unpackaged food'];
+      state.product.quantity = rawQuantity;
+      if (!state.product.ingredientsText || state.product.ingredientsText === state.product.name) {
+        state.product.ingredientsText = state.product.name;
+      }
+    }
+    const out = {
+      interpretedName: rawName,
+      interpretedCategory: rawCategory,
+      interpretedQuantity: rawQuantity,
+      status: 'interpreted',
+    };
+    recordLog('success', { rawEntryText: input.rawEntryText }, out);
+    return out;
+  }
 
   if (toolName === 'retrieve_product_info') {
     const barcode = (typeof args.barcode === 'string' ? args.barcode : input.barcode || '').trim();
@@ -508,6 +563,7 @@ export async function runFoodIntelligenceAgent(input: RunAgentAnalysisInput): Pr
         hasSelectedFamilyMember: Boolean(input.familyMember),
         memberRef: input.familyMember ? 'authorized_selected_member' : null,
         requestAlternatives: Boolean(input.requestAlternatives),
+        rawEntryText: input.rawEntryText || null,
       };
 
       const contents: Content[] = [

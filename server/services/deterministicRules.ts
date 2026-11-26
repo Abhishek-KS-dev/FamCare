@@ -769,3 +769,11 @@ export function deriveAlternativeSearchTerms(product: ProductData): string {
     .filter((w) => w.length >= 3 && !stopWords.has(w));
   return tokens.slice(0, 3).join(' ') || product.name.slice(0, 30);
 }
+
+/**
+ * Deterministic fallback handler for manual analysis with raw entry text.
+ * Accepts and safely ignores or passes through rawEntryText.
+ */
+export function handleRawEntryTextFallback(rawEntryText?: string | null): { rawEntryText?: string | null } {
+  return { rawEntryText: rawEntryText || null };
+}

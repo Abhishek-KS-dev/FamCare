@@ -211,6 +211,7 @@ export const api = {
     product?: Partial<ProductData>;
     familyMemberId?: string | null;
     requestAlternatives?: boolean;
+    rawEntryText?: string | null;
   }) =>
     apiRequest<{ report: AgentAnalysisReport }>('/api/agent/analyze', {
       method: 'POST',

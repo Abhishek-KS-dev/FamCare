@@ -538,6 +538,7 @@ apiRouter.post('/agent/analyze', requireAuth, async (req: AuthenticatedRequest, 
     }
 
     // manual_analysis
+    const rawEntryText = sanitizeString(req.body?.rawEntryText, 500) || null;
     if (!req.body?.product || typeof req.body.product !== 'object') {
       res.status(400).json({ error: 'Manual food entry payload is required.' });
       return;
@@ -553,6 +554,7 @@ apiRouter.post('/agent/analyze', requireAuth, async (req: AuthenticatedRequest, 
       providedProduct: product,
       familyMember,
       requestAlternatives,
+      rawEntryText,
     });
     res.json({ report });
   } catch (err) {
