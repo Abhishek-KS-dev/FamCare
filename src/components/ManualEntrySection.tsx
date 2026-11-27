@@ -621,23 +621,23 @@ export function ManualEntrySection({ selectedMember, onAnalysisComplete }: Manua
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <p className="text-xs font-semibold uppercase tracking-wider text-[#047857] mb-1">
+        <p className="text-xs font-medium text-[#4B5E53] mb-1">
           Product Identification · Unpackaged Foods
         </p>
         <h1 className="font-display text-2xl font-bold text-[#111C16]">Manual Food Entry</h1>
-        <p className="mt-1 text-sm text-[#3D5246] max-w-2xl">
+        <p className="mt-1 text-sm text-[#4B5E53] max-w-2xl">
           Enter fresh or unpackaged items such as rice, vegetables, fruits, meat, or bulk staples.
-          Missing nutrients are reported as unavailable rather than invented.
+          Missing nutrients are shown as unavailable rather than invented.
         </p>
       </div>
 
       {/* Frequently Added Items (Recent Purchases) */}
       {recentPurchases.length > 0 && (
-        <div className="ui-card p-4">
+        <div className="bg-white border border-[#E4EAE6] rounded-xl p-4">
           <div className="flex items-center gap-2 mb-2.5">
-            <Clock className="w-3.5 h-3.5 text-[#047857]" />
+            <Clock className="w-3.5 h-3.5 text-[#15803D]" />
             <span className="text-xs font-semibold text-[#111C16]">Recently Added Items</span>
-            <span className="text-[11px] text-[#5A7364]">(tap to re-fill)</span>
+            <span className="text-[11px] text-[#5A6E62]">(tap to re-fill)</span>
           </div>
           <div className="flex flex-wrap gap-2">
             {recentPurchases.map((item) => (
@@ -645,10 +645,10 @@ export function ManualEntrySection({ selectedMember, onAnalysisComplete }: Manua
                 key={item.id}
                 type="button"
                 onClick={() => handleSelectRecent(item)}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#F8FAF9] hover:bg-[#E3EAE5] text-[#111C16] border border-[#D0DCD4] text-xs font-medium rounded-lg transition-colors cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#F4F7F5] hover:bg-[#E8EFEA] text-[#111C16] border border-[#D4DFD8] text-xs font-medium rounded-lg transition-colors cursor-pointer"
               >
                 <span>{item.productName}</span>
-                <span className="text-[10px] text-[#5A7364]">
+                <span className="text-[10px] text-[#5A6E62]">
                   ({item.quantity} · {item.category})
                 </span>
               </button>
@@ -657,18 +657,18 @@ export function ManualEntrySection({ selectedMember, onAnalysisComplete }: Manua
         </div>
       )}
 
-      {/* Navigation Tabs: Guided vs Quick Text (Segmented Control) */}
-      <div className="inline-flex p-1 bg-[#E3EAE5]/60 rounded-xl border border-[#D0DCD4]">
+      {/* Navigation Tabs: Guided vs Quick Text */}
+      <div className="flex border-b border-[#E4EAE6] gap-2">
         <button
           type="button"
           onClick={() => {
             setActiveTab('guided');
             setPendingQuickConfirmation(null);
           }}
-          className={`px-4 py-2 text-xs sm:text-sm font-semibold rounded-lg transition-all cursor-pointer ${
+          className={`pb-2.5 px-4 text-sm font-medium border-b-2 transition-colors cursor-pointer ${
             activeTab === 'guided'
-              ? 'bg-white text-[#047857] shadow-xs'
-              : 'text-[#3D5246] hover:text-[#111C16]'
+              ? 'border-[#15803D] text-[#15803D]'
+              : 'border-transparent text-[#5A6E62] hover:text-[#111C16]'
           }`}
         >
           Guided (2-step form)
@@ -679,10 +679,10 @@ export function ManualEntrySection({ selectedMember, onAnalysisComplete }: Manua
             setActiveTab('quick');
             setError(null);
           }}
-          className={`px-4 py-2 text-xs sm:text-sm font-semibold rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
+          className={`pb-2.5 px-4 text-sm font-medium border-b-2 transition-colors cursor-pointer flex items-center gap-1.5 ${
             activeTab === 'quick'
-              ? 'bg-white text-[#047857] shadow-xs'
-              : 'text-[#3D5246] hover:text-[#111C16]'
+              ? 'border-[#15803D] text-[#15803D]'
+              : 'border-transparent text-[#5A6E62] hover:text-[#111C16]'
           }`}
         >
           <Sparkles className="w-3.5 h-3.5" />

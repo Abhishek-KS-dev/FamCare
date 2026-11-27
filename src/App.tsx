@@ -1,9 +1,6 @@
 import {
-  Activity,
-  ChevronDown,
   ClipboardCheck,
   FileSearch,
-  Heart,
   LayoutDashboard,
   Leaf,
   LogOut,
@@ -13,7 +10,6 @@ import {
   Settings,
   ShoppingBag,
   Sparkles,
-  UserCheck,
   Users,
   Utensils,
   Wallet,
@@ -32,7 +28,6 @@ import { OcrScannerSection } from './components/OcrScannerSection.tsx';
 import { OverviewSection, type NavSection } from './components/OverviewSection.tsx';
 import { PurchaseHistorySection } from './components/PurchaseHistorySection.tsx';
 import { SettingsSection } from './components/SettingsSection.tsx';
-import { ToastContainer } from './components/Toast.tsx';
 import {
   api,
   setAuthToken,
@@ -53,7 +48,6 @@ interface NavItem {
   label: string;
   icon: ComponentType<{ className?: string }>;
   group: 'main' | 'identify' | 'intelligence' | 'household';
-  badge?: string;
 }
 
 const NAV_ITEMS: NavItem[] = [
@@ -61,22 +55,13 @@ const NAV_ITEMS: NavItem[] = [
   { id: 'scan', label: 'Scan Product', icon: ScanBarcode, group: 'identify' },
   { id: 'ocr', label: 'OCR Label Scanner', icon: FileSearch, group: 'identify' },
   { id: 'manual', label: 'Manual Food Entry', icon: Utensils, group: 'identify' },
+  { id: 'family', label: 'Family Profiles', icon: Users, group: 'household' },
   { id: 'analysis', label: 'Food Analysis', icon: ClipboardCheck, group: 'intelligence' },
   { id: 'alternatives', label: 'Alternatives', icon: Sparkles, group: 'intelligence' },
-  { id: 'compare', label: 'Comparison', icon: Scale, group: 'intelligence' },
-  { id: 'family', label: 'Family Profiles', icon: Users, group: 'household' },
+  { id: 'compare', label: 'Product Comparison', icon: Scale, group: 'intelligence' },
   { id: 'purchases', label: 'Purchase History', icon: ShoppingBag, group: 'household' },
-  { id: 'budget', label: 'Budget Tracker', icon: Wallet, group: 'household' },
+  { id: 'budget', label: 'Budget Management', icon: Wallet, group: 'household' },
   { id: 'settings', label: 'Settings', icon: Settings, group: 'household' },
-];
-
-// Bottom tab navigation items for mobile view
-const MOBILE_TAB_ITEMS: Array<{ id: NavSection; label: string; icon: ComponentType<{ className?: string }> }> = [
-  { id: 'overview', label: 'Home', icon: LayoutDashboard },
-  { id: 'scan', label: 'Scan', icon: ScanBarcode },
-  { id: 'analysis', label: 'Analysis', icon: ClipboardCheck },
-  { id: 'family', label: 'Family', icon: Users },
-  { id: 'budget', label: 'Budget', icon: Wallet },
 ];
 
 export default function App() {
@@ -84,7 +69,6 @@ export default function App() {
   const [health, setHealth] = useState<HealthResponse | null>(null);
   const [section, setSection] = useState<NavSection>('overview');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [familyDropdownOpen, setFamilyDropdownOpen] = useState(false);
 
   // Household data
   const [families, setFamilies] = useState<FamilyRecord[]>([]);
@@ -251,18 +235,15 @@ export default function App() {
   const navigateTo = (next: NavSection) => {
     setSection(next);
     setMobileMenuOpen(false);
-    setFamilyDropdownOpen(false);
     setWorkspaceError(null);
   };
 
   const renderNavGroup = (title: string, group: NavItem['group']) => {
     const items = NAV_ITEMS.filter((i) => i.group === group);
     return (
-      <div className="space-y-1">
+      <div className="space-y-0.5">
         {title && (
-          <p className="px-3 pt-4 pb-1 text-[11px] font-semibold uppercase tracking-wider text-[var(--app-fg-subtle)]">
-            {title}
-          </p>
+          <p className="px-3 pt-4 pb-1.5 text-[11px] font-medium text-[#5A6E62]">{title}</p>
         )}
         {items.map((item) => {
           const Icon = item.icon;
@@ -272,29 +253,14 @@ export default function App() {
               key={item.id}
               type="button"
               onClick={() => navigateTo(item.id)}
-              className={`group relative w-full flex items-center justify-between px-3 py-2 text-xs sm:text-sm font-medium rounded-xl transition-all duration-150 cursor-pointer ${
+              className={`w-full flex items-center gap-2.5 px-3 py-2 text-sm font-medium rounded-lg transition-colors whitespace-nowrap cursor-pointer ${
                 active
-                  ? 'bg-[var(--color-primary-50)] text-[var(--color-primary-800)] shadow-xs'
-                  : 'text-[var(--app-fg-muted)] hover:bg-[var(--color-surface-100)] hover:text-[var(--app-fg)]'
+                  ? 'bg-[#E9F5EC] text-[#14532D]'
+                  : 'text-[#33463B] hover:bg-[#F2F6F3] hover:text-[#111C16]'
               }`}
             >
-              <div className="flex items-center gap-2.5 truncate">
-                <Icon
-                  className={`w-4 h-4 shrink-0 transition-colors ${
-                    active
-                      ? 'text-[var(--color-primary-700)]'
-                      : 'text-[var(--app-fg-subtle)] group-hover:text-[var(--app-fg)]'
-                  }`}
-                />
-                <span className="truncate">{item.label}</span>
-              </div>
-              {/* Active Pill Indicator */}
-              {active && (
-                <span
-                  className="w-1.5 h-4 rounded-full bg-[var(--color-primary-600)]"
-                  aria-hidden="true"
-                />
-              )}
+              <Icon className={`w-4 h-4 shrink-0 ${active ? 'text-[#15803D]' : 'text-[#5A6E62]'}`} />
+              <span className="truncate">{item.label}</span>
             </button>
           );
         })}
@@ -303,119 +269,76 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[var(--app-bg)] text-[var(--app-fg)] flex flex-col lg:flex-row antialiased selection:bg-[var(--color-primary-100)] selection:text-[var(--color-primary-900)]">
-      {/* =========================================================================
-          Desktop Modern Sidebar
-         ========================================================================= */}
-      <aside className="hidden lg:flex lg:flex-col w-64 shrink-0 bg-[var(--sidebar-bg)] border-r border-[var(--card-border)] min-h-screen sticky top-0 h-screen z-20">
-        {/* Brand Header */}
-        <div className="h-16 px-5 border-b border-[var(--card-border)] flex items-center justify-between shrink-0">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-[var(--color-primary-700)] to-[var(--color-primary-500)] flex items-center justify-center shadow-xs">
-              <Leaf className="w-4 h-4 text-white" />
-            </div>
-            <div>
-              <span className="font-display text-base font-bold tracking-tight text-[var(--app-fg)]">
-                FamCare
-              </span>
-              <span className="ml-1 text-[10px] font-semibold text-[var(--color-primary-700)] bg-[var(--color-primary-50)] px-1.5 py-0.5 rounded-full border border-[var(--color-primary-200)]">
-                AI Health
-              </span>
-            </div>
+    <div className="min-h-screen bg-[#F8FAF9] text-[#111C16] flex">
+      {/* Desktop Sidebar */}
+      <aside className="hidden lg:flex lg:flex-col w-64 shrink-0 bg-white border-r border-[#E4EAE6] min-h-screen sticky top-0 h-screen">
+        <div className="h-16 px-5 border-b border-[#E4EAE6] flex items-center gap-2.5 shrink-0">
+          <div className="w-8 h-8 rounded-lg bg-[#15803D] flex items-center justify-center">
+            <Leaf className="w-4 h-4 text-white" />
           </div>
+          <span className="font-display text-lg font-bold tracking-tight text-[#111C16] whitespace-nowrap">
+            FamCare
+          </span>
         </div>
 
-        {/* Household Selector in Sidebar */}
-        <div className="px-4 py-3 border-b border-[var(--card-border)] bg-[var(--color-surface-50)]/50">
-          <label className="block text-[10px] font-semibold text-[var(--app-fg-subtle)] uppercase tracking-wider mb-1">
-            Active Household
-          </label>
-          <div className="relative">
-            <select
-              value={activeFamilyId}
-              onChange={(e) => setActiveFamilyId(e.target.value)}
-              className="w-full pl-2.5 pr-8 py-1.5 text-xs font-semibold bg-[var(--card-bg)] border border-[var(--card-border)] rounded-lg text-[var(--app-fg)] truncate focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)]/20 cursor-pointer"
-            >
-              {families.map((f) => (
-                <option key={f.id} value={f.id}>
-                  {f.name}
-                </option>
-              ))}
-            </select>
-            <ChevronDown className="w-3.5 h-3.5 text-[var(--app-fg-subtle)] absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-          </div>
-        </div>
-
-        {/* Navigation Groups */}
-        <nav className="flex-1 overflow-y-auto px-3 py-2 space-y-1">
+        <nav className="flex-1 overflow-y-auto px-3 py-3 space-y-1">
           {renderNavGroup('', 'main')}
-          {renderNavGroup('Identification', 'identify')}
-          {renderNavGroup('Intelligence', 'intelligence')}
+          {renderNavGroup('Product Identification', 'identify')}
+          {renderNavGroup('Food Intelligence', 'intelligence')}
           {renderNavGroup('Household & Budget', 'household')}
         </nav>
 
-        {/* User Card & Logout */}
-        <div className="p-3 border-t border-[var(--card-border)] bg-[var(--color-surface-50)]/50 shrink-0">
-          <div className="flex items-center justify-between gap-2 p-2 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)]">
-            <div className="flex items-center gap-2.5 min-w-0">
-              <div className="w-8 h-8 rounded-full bg-[var(--color-primary-100)] text-[var(--color-primary-800)] font-bold text-xs flex items-center justify-center shrink-0">
-                {user.name.charAt(0).toUpperCase()}
-              </div>
-              <div className="min-w-0">
-                <p className="text-xs font-semibold text-[var(--app-fg)] truncate">{user.name}</p>
-                <p className="text-[10px] text-[var(--app-fg-subtle)] truncate">{user.email}</p>
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={handleLogout}
-              title="Sign out"
-              aria-label="Sign out"
-              className="p-1.5 text-[var(--app-fg-subtle)] hover:text-[var(--color-danger-600)] hover:bg-[var(--color-danger-50)] rounded-lg transition-colors cursor-pointer"
-            >
-              <LogOut className="w-4 h-4" />
-            </button>
+        <div className="p-4 border-t border-[#E4EAE6] space-y-2.5 shrink-0">
+          <div className="min-w-0">
+            <p className="text-xs font-semibold text-[#111C16] truncate">{user.name}</p>
+            <p className="text-[11px] text-[#5A6E62] truncate">{user.email}</p>
           </div>
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 text-xs font-medium text-[#4B5E53] hover:text-[#111C16] bg-[#F8FAF9] hover:bg-[#EDF2EE] border border-[#E4EAE6] rounded-lg transition-colors cursor-pointer"
+          >
+            <LogOut className="w-3.5 h-3.5" />
+            <span>Sign Out</span>
+          </button>
         </div>
       </aside>
 
-      {/* =========================================================================
-          Mobile Drawer & Overlay
-         ========================================================================= */}
+      {/* Mobile Drawer */}
       {mobileMenuOpen && (
         <div className="fixed inset-0 z-50 lg:hidden flex">
           <div
-            className="fixed inset-0 bg-black/40 backdrop-blur-xs transition-opacity duration-200"
+            className="fixed inset-0 bg-black/40"
             onClick={() => setMobileMenuOpen(false)}
           />
-          <div className="relative z-10 w-72 max-w-[85vw] bg-[var(--sidebar-bg)] h-full flex flex-col border-r border-[var(--card-border)] shadow-dropdown animate-in slide-in-from-left duration-200">
-            <div className="h-16 px-4 border-b border-[var(--card-border)] flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <div className="w-7 h-7 rounded-lg bg-[var(--color-primary-700)] flex items-center justify-center shadow-xs">
+          <div className="relative z-10 w-72 max-w-[85vw] bg-white h-full flex flex-col border-r border-[#E4EAE6]">
+            <div className="h-14 px-4 border-b border-[#E4EAE6] flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-md bg-[#15803D] flex items-center justify-center">
                   <Leaf className="w-4 h-4 text-white" />
                 </div>
-                <span className="font-display text-base font-bold text-[var(--app-fg)]">FamCare</span>
+                <span className="font-display text-base font-bold text-[#111C16]">FamCare</span>
               </div>
               <button
                 type="button"
                 onClick={() => setMobileMenuOpen(false)}
                 aria-label="Close navigation menu"
-                className="p-2 text-[var(--app-fg-muted)] hover:text-[var(--app-fg)] rounded-lg hover:bg-[var(--color-surface-100)]"
+                className="p-2 text-[#4B5E53] hover:text-[#111C16]"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
             <nav className="flex-1 overflow-y-auto px-3 py-3 space-y-1">
               {renderNavGroup('', 'main')}
-              {renderNavGroup('Identification', 'identify')}
-              {renderNavGroup('Intelligence', 'intelligence')}
+              {renderNavGroup('Product Identification', 'identify')}
+              {renderNavGroup('Food Intelligence', 'intelligence')}
               {renderNavGroup('Household & Budget', 'household')}
             </nav>
-            <div className="p-4 border-t border-[var(--card-border)] bg-[var(--color-surface-50)]">
+            <div className="p-4 border-t border-[#E4EAE6]">
               <button
                 type="button"
                 onClick={handleLogout}
-                className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 text-xs font-semibold text-[var(--app-fg-muted)] hover:text-[var(--app-fg)] bg-[var(--card-bg)] border border-[var(--card-border)] rounded-xl shadow-xs"
+                className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 text-xs font-medium text-[#4B5E53] bg-[#F8FAF9] border border-[#E4EAE6] rounded-lg"
               >
                 <LogOut className="w-3.5 h-3.5" />
                 <span>Sign Out</span>
@@ -425,49 +348,45 @@ export default function App() {
         </div>
       )}
 
-      {/* =========================================================================
-          Main Content & Translucent Sticky Header
-         ========================================================================= */}
-      <div className="flex-1 flex flex-col min-w-0 pb-16 lg:pb-0">
-        {/* Sticky Translucent Blur Header */}
-        <header className="h-16 bg-[var(--header-bg)] backdrop-blur-md border-b border-[var(--card-border)] px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4 sticky top-0 z-30 transition-colors">
+      {/* Main Viewport */}
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Clean Contextual Top Bar */}
+        <header className="h-16 bg-white border-b border-[#E4EAE6] px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4 sticky top-0 z-30">
           <div className="flex items-center gap-3 min-w-0">
             <button
               type="button"
               onClick={() => setMobileMenuOpen(true)}
               aria-label="Open navigation menu"
-              className="lg:hidden p-2 -ml-2 text-[var(--app-fg-muted)] hover:text-[var(--app-fg)] rounded-lg hover:bg-[var(--color-surface-100)] cursor-pointer"
+              className="lg:hidden p-2 -ml-2 text-[#4B5E53] hover:text-[#111C16] rounded-md"
             >
               <Menu className="w-5 h-5" />
             </button>
             <div className="flex items-center gap-2 text-sm min-w-0">
-              <span className="text-[var(--app-fg-subtle)] hidden sm:inline whitespace-nowrap text-xs font-medium">
+              <span className="text-[#5A6E62] hidden sm:inline whitespace-nowrap">
                 {activeFamily?.name || 'Household'}
               </span>
-              <span className="text-[var(--app-fg-subtle)] opacity-40 hidden sm:inline" aria-hidden="true">
+              <span className="text-[#CBD8D0] hidden sm:inline" aria-hidden="true">
                 /
               </span>
-              <span className="font-display font-bold text-[var(--app-fg)] truncate text-base">
+              <span className="font-display font-semibold text-[#111C16] truncate">
                 {currentNav.label}
               </span>
             </div>
           </div>
 
-          {/* Right Header Controls (Member Screening Selector & Health Tag) */}
           <div className="flex items-center gap-3 shrink-0">
-            <div className="flex items-center gap-2 bg-[var(--card-bg)] border border-[var(--card-border)] rounded-xl px-2.5 py-1.5 shadow-xs">
-              <UserCheck className="w-3.5 h-3.5 text-[var(--color-primary-600)] shrink-0" />
+            <div className="flex items-center gap-2">
               <label
                 htmlFor="active-member-select"
-                className="hidden md:inline text-[11px] font-semibold text-[var(--app-fg-subtle)] whitespace-nowrap"
+                className="hidden md:inline text-xs text-[#5A6E62] whitespace-nowrap"
               >
-                Screening for:
+                Screening:
               </label>
               <select
                 id="active-member-select"
                 value={selectedMemberId || ''}
                 onChange={(e) => setSelectedMemberId(e.target.value || null)}
-                className="text-xs font-semibold bg-transparent border-0 text-[var(--app-fg)] max-w-[140px] truncate focus:outline-none cursor-pointer"
+                className="px-3 py-1.5 text-xs font-medium bg-[#F8FAF9] border border-[#D4DFD8] rounded-lg text-[#111C16] max-w-[165px] truncate focus:outline-none focus:ring-2 focus:ring-[#15803D]/25 focus:border-[#15803D]"
               >
                 <option value="">No member selected</option>
                 {members.map((m) => (
@@ -480,18 +399,15 @@ export default function App() {
           </div>
         </header>
 
-        {/* Main Content Area with Smooth Fade Entrance */}
-        <main
-          key={section}
-          className="flex-1 p-4 sm:p-6 lg:p-8 max-w-[1360px] w-full mx-auto animate-in fade-in duration-200"
-        >
+        {/* Main Content Area */}
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-[1320px] w-full mx-auto">
           {workspaceError && (
-            <div className="mb-6 p-4 rounded-xl bg-[var(--color-danger-50)] border border-[var(--color-danger-100)] text-xs text-[var(--color-danger-700)] flex items-center justify-between shadow-xs">
-              <span className="font-medium">{workspaceError}</span>
+            <div className="mb-6 p-3.5 rounded-lg bg-[#FEF2F2] border border-[#FECACA] text-xs text-[#991B1B] flex items-center justify-between">
+              <span>{workspaceError}</span>
               <button
                 type="button"
                 onClick={() => setWorkspaceError(null)}
-                className="text-[var(--color-danger-700)] underline font-semibold ml-4 cursor-pointer hover:opacity-80"
+                className="text-[#991B1B] hover:underline ml-4 cursor-pointer"
               >
                 Dismiss
               </button>
@@ -500,10 +416,10 @@ export default function App() {
 
           {loadingWorkspace && families.length === 0 ? (
             <div className="space-y-4">
-              <div className="h-8 w-64 ui-skeleton" />
+              <div className="h-8 w-64 bg-[#E4EAE6]/70 rounded-lg animate-pulse" />
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {[1, 2, 3, 4].map((n) => (
-                  <div key={n} className="h-28 ui-card ui-skeleton" />
+                  <div key={n} className="h-28 bg-white border border-[#E4EAE6] rounded-xl animate-pulse" />
                 ))}
               </div>
             </div>
@@ -638,42 +554,7 @@ export default function App() {
             </>
           )}
         </main>
-
-        {/* =========================================================================
-            Mobile Bottom Navigation Tab Bar
-           ========================================================================= */}
-        <nav
-          aria-label="Mobile navigation"
-          className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-[var(--header-bg)] backdrop-blur-md border-t border-[var(--card-border)] px-3 py-1.5 flex items-center justify-around shadow-dropdown"
-        >
-          {MOBILE_TAB_ITEMS.map((tab) => {
-            const Icon = tab.icon;
-            const active = section === tab.id;
-            return (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => navigateTo(tab.id)}
-                className={`relative flex flex-col items-center justify-center py-1 px-2.5 rounded-xl transition-all cursor-pointer ${
-                  active
-                    ? 'text-[var(--color-primary-700)] font-semibold'
-                    : 'text-[var(--app-fg-subtle)] hover:text-[var(--app-fg)]'
-                }`}
-              >
-                <Icon className={`w-5 h-5 transition-transform ${active ? 'scale-110' : ''}`} />
-                <span className="text-[10px] mt-0.5 tracking-tight">{tab.label}</span>
-                {active && (
-                  <span
-                    className="absolute -bottom-1 w-5 h-1 rounded-full bg-[var(--color-primary-600)]"
-                    aria-hidden="true"
-                  />
-                )}
-              </button>
-            );
-          })}
-        </nav>
       </div>
-      <ToastContainer />
     </div>
   );
 }
