@@ -371,29 +371,56 @@ export function FoodAnalysisSection({
       {/* Deterministic Family Health Compatibility Verdict */}
       {compat ? (
         <div
-          className={`rounded-xl border p-6 space-y-4 ${
+          className={`ui-card p-6 space-y-4 border-2 transition-all ${
             compat.status === 'CONFLICT'
-              ? 'bg-[#FEF2F2] border-[#FECACA]'
+              ? 'bg-[#FEF2F2] border-[#FECACA] shadow-sm'
               : compat.status === 'CAUTION_INCOMPLETE_DATA'
-                ? 'bg-[#FFFBEB] border-[#FDE68A]'
-                : 'bg-[#F0FDF4] border-[#BBF7D0]'
+                ? 'bg-[#FFFBEB] border-[#FDE68A] shadow-sm'
+                : 'bg-[#F0FDF4] border-[#BBF7D0] shadow-sm'
           }`}
         >
           <div className="flex flex-wrap items-start justify-between gap-4">
-            <div className="flex items-start gap-3">
-              {compat.status === 'CONFLICT' ? (
-                <ShieldAlert className="w-6 h-6 text-[#B91C1C] shrink-0 mt-0.5" />
-              ) : compat.status === 'CAUTION_INCOMPLETE_DATA' ? (
-                <AlertTriangle className="w-6 h-6 text-[#B45309] shrink-0 mt-0.5" />
-              ) : (
-                <ShieldCheck className="w-6 h-6 text-[#15803D] shrink-0 mt-0.5" />
-              )}
+            <div className="flex items-start gap-3.5">
+              <div
+                className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
+                  compat.status === 'CONFLICT'
+                    ? 'bg-[#FEE2E2] text-[#DC2626]'
+                    : compat.status === 'CAUTION_INCOMPLETE_DATA'
+                      ? 'bg-[#FEF3C7] text-[#D97706]'
+                      : 'bg-[#DCFCE7] text-[#16A34A]'
+                }`}
+              >
+                {compat.status === 'CONFLICT' ? (
+                  <ShieldAlert className="w-5 h-5" />
+                ) : compat.status === 'CAUTION_INCOMPLETE_DATA' ? (
+                  <AlertTriangle className="w-5 h-5" />
+                ) : (
+                  <ShieldCheck className="w-5 h-5" />
+                )}
+              </div>
               <div>
-                <p className="text-xs font-medium text-[#4B5E53]">
-                  Deterministic Family Compatibility Check · {compat.memberName}
-                </p>
+                <div className="flex items-center gap-2">
+                  <span
+                    className={`ui-badge text-[11px] font-bold uppercase tracking-wider ${
+                      compat.status === 'CONFLICT'
+                        ? 'ui-badge-danger'
+                        : compat.status === 'CAUTION_INCOMPLETE_DATA'
+                          ? 'ui-badge-warning'
+                          : 'ui-badge-success'
+                    }`}
+                  >
+                    {compat.status === 'CONFLICT'
+                      ? 'Avoid / Conflict'
+                      : compat.status === 'CAUTION_INCOMPLETE_DATA'
+                        ? 'Caution / Check Pack'
+                        : 'Safe / Compatible'}
+                  </span>
+                  <span className="text-xs font-medium text-[#5A7364]">
+                    Screening: {compat.memberName}
+                  </span>
+                </div>
                 <h2
-                  className={`font-display text-lg font-bold mt-0.5 ${
+                  className={`font-display text-lg font-bold mt-1 ${
                     compat.status === 'CONFLICT'
                       ? 'text-[#991B1B]'
                       : compat.status === 'CAUTION_INCOMPLETE_DATA'
@@ -414,7 +441,7 @@ export function FoodAnalysisSection({
               <button
                 type="button"
                 onClick={() => onNavigate('alternatives')}
-                className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#111C16] hover:bg-[#1F2E26] text-white text-xs font-medium rounded-lg whitespace-nowrap cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#111C16] hover:bg-[#1F2E26] text-white text-xs font-semibold rounded-xl whitespace-nowrap cursor-pointer shadow-xs transition-all active:scale-98"
               >
                 <span>
                   View {report.alternatives.recommendations.length} Alternative(s)

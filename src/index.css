@@ -1,20 +1,133 @@
 @import "tailwindcss";
 
 @theme {
+  /* Fonts */
   --font-display: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
   --font-sans: "DM Sans", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, monospace;
+
+  /* Primary Palette (Fresh Herbaceous Emerald) */
+  --color-primary-50: #ecfdf5;
+  --color-primary-100: #d1fae5;
+  --color-primary-200: #a7f3d0;
+  --color-primary-300: #6ee7b7;
+  --color-primary-400: #34d399;
+  --color-primary-500: #10b981;
+  --color-primary-600: #059669;
+  --color-primary-700: #047857;
+  --color-primary-800: #065f46;
+  --color-primary-900: #064e3b;
+  --color-primary-950: #022c22;
+
+  /* Warm Accent (Honey / Tangerine warmth for nutrition focus) */
+  --color-accent-50: #fffbeb;
+  --color-accent-100: #fef3c7;
+  --color-accent-200: #fde68a;
+  --color-accent-300: #fcd34d;
+  --color-accent-400: #fbbf24;
+  --color-accent-500: #f59e0b;
+  --color-accent-600: #d97706;
+  --color-accent-700: #b45309;
+  --color-accent-800: #92400e;
+  --color-accent-900: #78350f;
+
+  /* Soft Organic Neutrals */
+  --color-surface-50: #f8faf9;
+  --color-surface-100: #f0f4f1;
+  --color-surface-200: #e3eae5;
+  --color-surface-300: #d0dcd4;
+  --color-surface-400: #9bb1a3;
+  --color-surface-500: #6b8775;
+  --color-surface-600: #4f6859;
+  --color-surface-700: #3c5044;
+  --color-surface-800: #2a3730;
+  --color-surface-900: #1a221e;
+  --color-surface-950: #0f1512;
+
+  /* Semantic - Danger / Warning / Success */
+  --color-danger-50: #fef2f2;
+  --color-danger-100: #fee2e2;
+  --color-danger-500: #ef4444;
+  --color-danger-600: #dc2626;
+  --color-danger-700: #b91c1c;
+
+  --color-warning-50: #fffbeb;
+  --color-warning-100: #fef3c7;
+  --color-warning-500: #f59e0b;
+  --color-warning-600: #d97706;
+  --color-warning-700: #b45309;
+
+  --color-success-50: #f0fdf4;
+  --color-success-100: #dcfce7;
+  --color-success-500: #22c55e;
+  --color-success-600: #16a34a;
+  --color-success-700: #15803d;
+
+  /* Radius Scale */
+  --radius-xs: 0.25rem;
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.25rem;
+  --radius-3xl: 1.5rem;
+  --radius-full: 9999px;
+
+  /* Shadows - Soft Layered */
+  --shadow-xs: 0 1px 2px 0 rgb(16 24 40 / 0.04);
+  --shadow-sm: 0 1px 3px 0 rgb(16 24 40 / 0.07), 0 1px 2px -1px rgb(16 24 40 / 0.04);
+  --shadow-card: 0 2px 6px -1px rgb(15 23 42 / 0.05), 0 10px 24px -4px rgb(15 23 42 / 0.04);
+  --shadow-card-hover: 0 6px 16px -2px rgb(15 23 42 / 0.08), 0 20px 32px -6px rgb(15 23 42 / 0.07);
+  --shadow-dropdown: 0 10px 30px -5px rgb(15 23 42 / 0.12), 0 4px 10px -2px rgb(15 23 42 / 0.05);
+  --shadow-elevated: 0 20px 40px -10px rgb(6 78 59 / 0.18);
+}
+
+/* ==========================================================================
+   Base Layer - Strictly Light Mode (color-scheme: light)
+   ========================================================================== */
+:root {
+  color-scheme: light;
+  --app-bg: #f8faf9;
+  --app-fg: #111c16;
+  --app-fg-muted: #3d5246;
+  --app-fg-subtle: #5a7364;
+  --card-bg: #ffffff;
+  --card-border: #e3eae5;
+  --card-border-hover: #c3d2c9;
+  --input-bg: #ffffff;
+  --input-border: #d0dcd4;
+  --input-focus-border: #059669;
+  --input-focus-ring: rgba(5, 150, 105, 0.2);
+  --header-bg: rgba(248, 250, 249, 0.88);
+  --sidebar-bg: #ffffff;
 }
 
 @layer base {
+  html {
+    color-scheme: light;
+  }
+
   body {
     font-family: var(--font-sans);
-    background-color: #F8FAF9;
-    color: #111C16;
+    background-color: var(--app-bg);
+    color: var(--app-fg);
   }
 
   h1, h2, h3, h4, .font-display {
     font-family: var(--font-display);
+    letter-spacing: -0.015em;
+    color: var(--app-fg);
+  }
+
+  /* Clear contrast for all form elements */
+  input, select, textarea {
+    color: var(--app-fg);
+    background-color: var(--input-bg);
+  }
+
+  input::placeholder, textarea::placeholder {
+    color: var(--app-fg-subtle);
+    opacity: 0.75;
   }
 }
 
@@ -22,10 +135,272 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* ==========================================================================
+   Reusable UI Utility Classes
+   ========================================================================== */
+
+/* Cards */
+.ui-card {
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-card);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.ui-card-hover {
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-card);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+}
+.ui-card-hover:hover {
+  border-color: var(--card-border-hover);
+  box-shadow: var(--shadow-card-hover);
+  transform: translateY(-1px);
+}
+
+/* Buttons */
+.ui-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.125rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  border-radius: var(--radius-lg);
+  background-color: var(--color-primary-700);
+  color: #ffffff;
+  box-shadow: var(--shadow-xs);
+  transition: all 0.15s ease;
+  cursor: pointer;
+}
+.ui-btn-primary:hover:not(:disabled) {
+  background-color: var(--color-primary-800);
+  box-shadow: var(--shadow-sm);
+  transform: translateY(-0.5px);
+}
+.ui-btn-primary:active:not(:disabled) {
+  transform: scale(0.98);
+}
+.ui-btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.ui-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.125rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: var(--radius-lg);
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  color: var(--app-fg);
+  transition: all 0.15s ease;
+  cursor: pointer;
+}
+.ui-btn-secondary:hover:not(:disabled) {
+  background-color: var(--color-surface-100);
+  border-color: var(--card-border-hover);
+}
+.ui-btn-secondary:active:not(:disabled) {
+  transform: scale(0.98);
+}
+.ui-btn-secondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.ui-btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.875rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: var(--radius-md);
+  color: var(--app-fg-muted);
+  background: transparent;
+  transition: all 0.15s ease;
+  cursor: pointer;
+}
+.ui-btn-ghost:hover:not(:disabled) {
+  background-color: var(--color-surface-100);
+  color: var(--app-fg);
+}
+.ui-btn-ghost:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+/* Inputs & Form Controls */
+.ui-input {
+  width: 100%;
+  padding: 0.5625rem 0.875rem;
+  font-size: 0.875rem;
+  background-color: var(--input-bg);
+  border: 1px solid var(--input-border);
+  color: var(--app-fg);
+  border-radius: var(--radius-lg);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.ui-input:focus {
+  outline: none;
+  border-color: var(--input-focus-border);
+  box-shadow: 0 0 0 3px var(--input-focus-ring);
+}
+.ui-input::placeholder {
+  color: var(--app-fg-subtle);
+}
+
+/* Badges */
+.ui-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.2rem 0.625rem;
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+.ui-badge-primary {
+  background-color: var(--color-primary-50);
+  color: var(--color-primary-800);
+  border: 1px solid var(--color-primary-200);
+}
+.ui-badge-accent {
+  background-color: var(--color-accent-50);
+  color: var(--color-accent-800);
+  border: 1px solid var(--color-accent-200);
+}
+.ui-badge-success {
+  background-color: var(--color-success-50);
+  color: var(--color-success-700);
+  border: 1px solid var(--color-success-100);
+}
+.ui-badge-warning {
+  background-color: var(--color-warning-50);
+  color: var(--color-warning-700);
+  border: 1px solid var(--color-warning-100);
+}
+.ui-badge-danger {
+  background-color: var(--color-danger-50);
+  color: var(--color-danger-700);
+  border: 1px solid var(--color-danger-100);
+}
+
+/* Section Header */
+.ui-section-header {
+  margin-bottom: 1.5rem;
+}
+.ui-section-header .eyebrow {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-primary-700);
+  margin-bottom: 0.25rem;
+}
+.ui-section-header .title {
+  font-family: var(--font-display);
+  font-size: 1.625rem;
+  font-weight: 700;
+  color: var(--app-fg);
+}
+.ui-section-header .subtitle {
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+  color: var(--app-fg-muted);
+  max-width: 42rem;
+}
+
+/* Empty State */
+.ui-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 3rem 1.5rem;
+  background-color: var(--card-bg);
+  border: 1.5px dashed var(--card-border);
+  border-radius: var(--radius-xl);
+}
+.ui-empty-state .icon-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: var(--radius-full);
+  background-color: var(--color-surface-100);
+  color: var(--app-fg-muted);
+  margin-bottom: 1rem;
+}
+
+/* Skeleton Loading */
+.ui-skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--color-surface-200) 25%,
+    var(--color-surface-100) 37%,
+    var(--color-surface-200) 63%
+  );
+  background-size: 400% 100%;
+  animation: skeleton-shimmer 1.4s ease infinite;
+  border-radius: var(--radius-md);
+}
+
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0 50%;
+  }
+}
+
+/* Micro-interactions & animations */
+@keyframes fadeInSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Stagger list entrance utility */
+.stagger-item-1 { animation-delay: 40ms; }
+.stagger-item-2 { animation-delay: 80ms; }
+.stagger-item-3 { animation-delay: 120ms; }
+.stagger-item-4 { animation-delay: 160ms; }
+
+/* Accessible button micro-press scale */
+button:not(:disabled):active {
+  transform: scale(0.98);
+}
+
+/* Accessibility: Reduced motion */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+  button:not(:disabled):active {
+    transform: none !important;
   }
 }
