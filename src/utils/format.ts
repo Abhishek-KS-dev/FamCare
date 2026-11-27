@@ -11,6 +11,8 @@ import {
   Tooltip,
 } from 'chart.js';
 
+import type { ProductSource } from '../services/api.ts';
+
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -52,7 +54,7 @@ export function currentMonthKey(): string {
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
 }
 
-export function formatSourceLabel(source: 'open_food_facts' | 'ocr_verified' | 'manual_entry'): string {
+export function formatSourceLabel(source: ProductSource): string {
   switch (source) {
     case 'open_food_facts':
       return 'Open Food Facts';
@@ -60,5 +62,9 @@ export function formatSourceLabel(source: 'open_food_facts' | 'ocr_verified' | '
       return 'OCR Label (User Verified)';
     case 'manual_entry':
       return 'Manual Entry (Unverified)';
+    case 'ifct_2017':
+      return 'IFCT 2017 (Raw Unpackaged)';
+    case 'prepared_dish_db':
+      return 'Indian Prepared Dishes';
   }
 }

@@ -70,7 +70,7 @@ export interface IPurchaseHistoryDoc extends Document {
   productName: string;
   brand: string | null;
   category: string;
-  source: 'open_food_facts' | 'ocr_verified' | 'manual_entry';
+  source: 'open_food_facts' | 'ocr_verified' | 'manual_entry' | 'ifct_2017' | 'prepared_dish_db';
   quantity: number;
   unitPrice: number;
   totalPrice: number;
@@ -92,7 +92,7 @@ const PurchaseHistorySchema = new Schema<IPurchaseHistoryDoc>(
     category: { type: String, default: 'Uncategorized', maxlength: 120 },
     source: {
       type: String,
-      enum: ['open_food_facts', 'ocr_verified', 'manual_entry'],
+      enum: ['open_food_facts', 'ocr_verified', 'manual_entry', 'ifct_2017', 'prepared_dish_db'],
       default: 'open_food_facts',
     },
     quantity: { type: Number, required: true, min: 0.01, default: 1 },

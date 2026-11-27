@@ -21,13 +21,14 @@ import {
   fetchProductByBarcode,
   searchOpenFoodFactsProducts,
 } from '../services/openFoodFacts.ts';
+import { searchIFCT, type IFCTSearchResult } from '../services/ifct.ts';
 import type { ProductData, ProductNutriments } from '../types.ts';
 
 export const apiRouter = Router();
 
 function buildProductFromClientPayload(
   body: Record<string, unknown>,
-  source: 'ocr_verified' | 'manual_entry' | 'open_food_facts'
+  source: 'ocr_verified' | 'manual_entry' | 'open_food_facts' | 'ifct_2017' | 'prepared_dish_db'
 ): ProductData | null {
   const name = sanitizeString(body.name, 160);
   if (!name) return null;
@@ -470,6 +471,21 @@ apiRouter.get('/products/search', requireAuth, async (req: AuthenticatedRequest,
   }
 });
 
+apiRouter.get('/products/ifct-search', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const q = sanitizeString(req.query.q, 80);
+    if (!q || q.length < 2) {
+      res.status(400).json({ error: 'Please provide at least 2 characters to search IFCT.' });
+      return;
+    }
+    const results = searchIFCT(q, 5);
+    res.json({ results, queryUsed: q });
+  } catch (err) {
+    console.error('IFCT search error:', err);
+    res.status(500).json({ results: [], queryUsed: '', error: 'Failed to search IFCT 2017 database.' });
+  }
+});
+
 // ==========================================
 // Central Food Intelligence Agent Routes
 // ==========================================
@@ -571,8 +587,8 @@ apiRouter.post('/agent/alternatives', requireAuth, async (req: AuthenticatedRequ
     }
 
     const rawSource = req.body.product.source;
-    const source: 'open_food_facts' | 'ocr_verified' | 'manual_entry' =
-      rawSource === 'ocr_verified' || rawSource === 'manual_entry' ? rawSource : 'open_food_facts';
+    const source: 'open_food_facts' | 'ocr_verified' | 'manual_entry' | 'ifct_2017' | 'prepared_dish_db' =
+      rawSource === 'ocr_verified' || rawSource === 'manual_entry' || rawSource === 'ifct_2017' || rawSource === 'prepared_dish_db' ? rawSource : 'open_food_facts';
 
     const product = buildProductFromClientPayload(req.body.product, source);
     if (!product) {
@@ -672,8 +688,8 @@ apiRouter.post('/purchases', requireAuth, async (req: AuthenticatedRequest, res:
     const barcodeRaw = sanitizeString(req.body?.barcode, 24);
     const barcode = /^[0-9]{4,20}$/.test(barcodeRaw) ? barcodeRaw : null;
     const sourceRaw = req.body?.source;
-    const source: 'open_food_facts' | 'ocr_verified' | 'manual_entry' =
-      sourceRaw === 'ocr_verified' || sourceRaw === 'manual_entry' ? sourceRaw : 'open_food_facts';
+    const source: 'open_food_facts' | 'ocr_verified' | 'manual_entry' | 'ifct_2017' | 'prepared_dish_db' =
+      sourceRaw === 'ocr_verified' || sourceRaw === 'manual_entry' || sourceRaw === 'ifct_2017' || sourceRaw === 'prepared_dish_db' ? sourceRaw : 'open_food_facts';
     const quantity = sanitizeOptionalNumber(req.body?.quantity, 0.01, 10000);
     const unitPrice = sanitizeOptionalNumber(req.body?.unitPrice, 0, 100000);
     const nutriScoreRaw = sanitizeString(req.body?.nutriScore, 2).toUpperCase();

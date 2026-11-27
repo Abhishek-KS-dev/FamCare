@@ -1,4 +1,4 @@
-export type ProductSource = 'open_food_facts' | 'ocr_verified' | 'manual_entry';
+export type ProductSource = 'open_food_facts' | 'ocr_verified' | 'manual_entry' | 'ifct_2017' | 'prepared_dish_db';
 
 export interface ProductNutriments {
   energyKcal: number | null;

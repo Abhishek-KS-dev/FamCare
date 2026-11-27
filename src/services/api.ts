@@ -6,6 +6,7 @@ import type {
   FamilyRecord,
   MonthlyBudgetRecord,
   ProductData,
+  ProductSource,
   PurchaseRecord,
 } from '../../server/types.ts';
 
@@ -29,6 +30,33 @@ export type {
   ProductSource,
   PurchaseRecord,
 } from '../../server/types.ts';
+
+export interface IFCTFoodItem {
+  id: string;
+  name: string;
+  aliases: string[];
+  group: string;
+  dataset?: string;
+  preparation?: string;
+  reliability?: 'ok' | 'low';
+  reliabilityFlags?: string[];
+  per100g: {
+    energyKcal: number | null;
+    carbohydrates: number | null;
+    sugars: number | null;
+    protein: number | null;
+    fat: number | null;
+    saturatedFat: number | null;
+    sodium: number | null;
+    fiber: number | null;
+  };
+}
+
+export interface IFCTSearchResult {
+  item: IFCTFoodItem;
+  score: number;
+  product: ProductData;
+}
 
 export interface AuthUser {
   id: string;
@@ -205,6 +233,11 @@ export const api = {
       `/api/products/search?q=${encodeURIComponent(query)}`
     ),
 
+  searchIFCT: (query: string) =>
+    apiRequest<{ results: IFCTSearchResult[]; queryUsed: string; error?: string }>(
+      `/api/products/ifct-search?q=${encodeURIComponent(query)}`
+    ),
+
   analyzeWithAgent: (payload: {
     taskType: 'barcode_analysis' | 'ocr_analysis' | 'manual_analysis';
     barcode?: string;
@@ -246,7 +279,7 @@ export const api = {
     productName: string;
     brand?: string | null;
     category?: string | null;
-    source: 'open_food_facts' | 'ocr_verified' | 'manual_entry';
+    source: ProductSource;
     quantity: number;
     unitPrice: number;
     nutriScore?: string | null;

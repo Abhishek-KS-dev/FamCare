@@ -16,6 +16,7 @@ import {
   api,
   type AgentAnalysisReport,
   type FamilyMemberRecord,
+  type IFCTSearchResult,
   type ProductData,
   type PurchaseRecord,
 } from '../services/api.ts';
@@ -187,11 +188,12 @@ export function ManualEntrySection({ selectedMember, onAnalysisComplete }: Manua
   const [amount, setAmount] = useState('1');
   const [unit, setUnit] = useState<UnitType>('kg');
 
-  // Open Food Facts suggestions
+  // Suggestions state
+  const [ifctSuggestions, setIfctSuggestions] = useState<IFCTSearchResult[]>([]);
   const [suggestions, setSuggestions] = useState<ProductData[]>([]);
   const [searchingSuggestions, setSearchingSuggestions] = useState(false);
   const [showSuggestionsDropdown, setShowSuggestionsDropdown] = useState(false);
-  const [offPreFillNote, setOffPreFillNote] = useState<string | null>(null);
+  const [preFillNote, setPreFillNote] = useState<string | null>(null);
 
   // Step 2: Nutrition facts (optional)
   const [step2Open, setStep2Open] = useState(false);
@@ -258,15 +260,16 @@ export function ManualEntrySection({ selectedMember, onAnalysisComplete }: Manua
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Search Open Food Facts suggestions as user types
+  // Search IFCT and Open Food Facts suggestions as user types
   const handleNameChange = (val: string) => {
     setName(val);
-    setOffPreFillNote(null);
+    setPreFillNote(null);
     if (searchDebounceRef.current) {
       clearTimeout(searchDebounceRef.current);
     }
     const query = val.trim();
     if (query.length < 2) {
+      setIfctSuggestions([]);
       setSuggestions([]);
       setShowSuggestionsDropdown(false);
       return;
@@ -274,15 +277,55 @@ export function ManualEntrySection({ selectedMember, onAnalysisComplete }: Manua
     searchDebounceRef.current = setTimeout(async () => {
       setSearchingSuggestions(true);
       try {
-        const res = await api.searchProducts(query);
-        setSuggestions(res.products.slice(0, 5));
-        setShowSuggestionsDropdown(res.products.length > 0);
+        const [ifctRes, offRes] = await Promise.allSettled([
+          api.searchIFCT(query),
+          api.searchProducts(query),
+        ]);
+        const ifctItems = ifctRes.status === 'fulfilled' ? ifctRes.value.results || [] : [];
+        const offItems = offRes.status === 'fulfilled' ? (offRes.value.products || []).slice(0, 5) : [];
+        setIfctSuggestions(ifctItems);
+        setSuggestions(offItems);
+        setShowSuggestionsDropdown(ifctItems.length > 0 || offItems.length > 0);
       } catch {
+        setIfctSuggestions([]);
         setSuggestions([]);
       } finally {
         setSearchingSuggestions(false);
       }
     }, 300);
+  };
+
+  // Pre-fill from IFCT / Indian Dishes suggestion
+  const handleSelectIFCTSuggestion = (res: IFCTSearchResult) => {
+    const item = res.item;
+    setName(item.name);
+    if (item.group && UNPACKAGED_CATEGORIES.includes(item.group as UnpackagedCategory)) {
+      setCategory(item.group as UnpackagedCategory);
+    } else {
+      setCategory(inferCategoryFromName(item.name));
+    }
+
+    // Pre-fill nutrients from item (keeps them editable)
+    setEnergyKcal(item.per100g.energyKcal !== null ? String(item.per100g.energyKcal) : '');
+    setCarbohydrates(item.per100g.carbohydrates !== null ? String(item.per100g.carbohydrates) : '');
+    setSugars(item.per100g.sugars !== null ? String(item.per100g.sugars) : '');
+    setProtein(item.per100g.protein !== null ? String(item.per100g.protein) : '');
+    setFat(item.per100g.fat !== null ? String(item.per100g.fat) : '');
+    setSaturatedFat(item.per100g.saturatedFat !== null ? String(item.per100g.saturatedFat) : '');
+    setSodium(item.per100g.sodium !== null ? String(item.per100g.sodium) : '');
+    setFiber(item.per100g.fiber !== null ? String(item.per100g.fiber) : '');
+    setIngredientsText(item.name);
+
+    if (item.dataset === 'ifct_2017') {
+      setPreFillNote('IFCT 2017, raw, per 100 g edible portion');
+    } else {
+      let note = 'Approximate values for a prepared dish. The serving basis of this dataset is not verified, so please check them before analyzing.';
+      if (item.reliability === 'low') {
+        note += ' These values were flagged as unreliable.';
+      }
+      setPreFillNote(note);
+    }
+    setShowSuggestionsDropdown(false);
   };
 
   // Pre-fill from OFF suggestion
@@ -308,7 +351,7 @@ export function ManualEntrySection({ selectedMember, onAnalysisComplete }: Manua
       setIngredientsText(p.ingredientsText);
     }
 
-    setOffPreFillNote('Values pre-filled from a similar Open Food Facts product — not verified for your item.');
+    setPreFillNote('Values pre-filled from a similar Open Food Facts product — not verified for your item.');
     setShowSuggestionsDropdown(false);
   };
 
@@ -392,6 +435,24 @@ export function ManualEntrySection({ selectedMember, onAnalysisComplete }: Manua
     if (parsed.success) {
       const inferredCat = inferCategoryFromName(parsed.name);
       const quantityStr = `${parsed.quantityValue} ${parsed.unit}`.trim();
+
+      // Look up IFCT 2017 nutrition facts for parsed food name
+      let attachedNutriments = undefined;
+      let resolvedSource: 'manual_entry' | 'ifct_2017' = 'manual_entry';
+      try {
+        const ifctRes = await api.searchIFCT(parsed.name);
+        if (ifctRes.results && ifctRes.results.length > 0) {
+          const topMatch = ifctRes.results[0];
+          // Only auto-attach when top match is from ifct_2017 and reasonably strong (score <= 0.4)
+          if (topMatch.item.dataset === 'ifct_2017' && topMatch.score <= 0.4) {
+            attachedNutriments = topMatch.product.nutriments;
+            resolvedSource = 'ifct_2017';
+          }
+        }
+      } catch {
+        // Silently continue without failing quick mode confirmation
+      }
+
       // Show confirmation step: "We understood: 2 kg basmati rice (Grains & Rice). Correct?"
       setPendingQuickConfirmation({
         understoodText: `${quantityStr} ${parsed.name} (${inferredCat})`,
@@ -400,7 +461,8 @@ export function ManualEntrySection({ selectedMember, onAnalysisComplete }: Manua
           category: inferredCat,
           quantity: quantityStr,
           ingredientsText: parsed.name,
-          source: 'manual_entry',
+          source: resolvedSource,
+          ...(attachedNutriments ? { nutriments: attachedNutriments } : {}),
         },
       });
       return;
@@ -492,6 +554,20 @@ export function ManualEntrySection({ selectedMember, onAnalysisComplete }: Manua
         }
       }
     }
+    if (p.nutriments) {
+      setEnergyKcal(p.nutriments.energyKcal !== null && p.nutriments.energyKcal !== undefined ? String(p.nutriments.energyKcal) : '');
+      setCarbohydrates(p.nutriments.carbohydrates !== null && p.nutriments.carbohydrates !== undefined ? String(p.nutriments.carbohydrates) : '');
+      setSugars(p.nutriments.sugars !== null && p.nutriments.sugars !== undefined ? String(p.nutriments.sugars) : '');
+      setProtein(p.nutriments.protein !== null && p.nutriments.protein !== undefined ? String(p.nutriments.protein) : '');
+      setFat(p.nutriments.fat !== null && p.nutriments.fat !== undefined ? String(p.nutriments.fat) : '');
+      setSaturatedFat(p.nutriments.saturatedFat !== null && p.nutriments.saturatedFat !== undefined ? String(p.nutriments.saturatedFat) : '');
+      setSodium(p.nutriments.sodium !== null && p.nutriments.sodium !== undefined ? String(p.nutriments.sodium) : '');
+      setFiber(p.nutriments.fiber !== null && p.nutriments.fiber !== undefined ? String(p.nutriments.fiber) : '');
+      if (p.source === 'ifct_2017') {
+        setPreFillNote('IFCT 2017, raw, per 100 g edible portion');
+        setStep2Open(true);
+      }
+    }
     setPendingQuickConfirmation(null);
     setActiveTab('guided');
   };
@@ -517,7 +593,7 @@ export function ManualEntrySection({ selectedMember, onAnalysisComplete }: Manua
     setUnit(template.defaultUnit);
     setIngredientsText(template.ingredients || template.name);
     // Nutrition fields stay untouched / empty
-    setOffPreFillNote(null);
+    setPreFillNote(null);
     if (activeTab !== 'guided') {
       setActiveTab('guided');
     }
@@ -533,7 +609,7 @@ export function ManualEntrySection({ selectedMember, onAnalysisComplete }: Manua
     }
     setAmount(String(item.quantity || '1'));
     setIngredientsText(item.productName);
-    setOffPreFillNote(null);
+    setPreFillNote(null);
     if (activeTab !== 'guided') {
       setActiveTab('guided');
     }
@@ -742,9 +818,9 @@ export function ManualEntrySection({ selectedMember, onAnalysisComplete }: Manua
                         value={name}
                         onChange={(e) => handleNameChange(e.target.value)}
                         onFocus={() => {
-                          if (suggestions.length > 0) setShowSuggestionsDropdown(true);
+                          if (ifctSuggestions.length > 0 || suggestions.length > 0) setShowSuggestionsDropdown(true);
                         }}
-                        placeholder="e.g. Basmati Rice, Fresh Spinach, Atlantic Salmon"
+                        placeholder="e.g. Basmati Rice, Fresh Spinach, Okra"
                         className="w-full px-3.5 py-2 text-sm border border-[#D4DFD8] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#15803D]/25 focus:border-[#15803D] pr-9"
                       />
                       {searchingSuggestions && (
@@ -752,11 +828,11 @@ export function ManualEntrySection({ selectedMember, onAnalysisComplete }: Manua
                       )}
                     </div>
 
-                    {/* Suggestions Dropdown */}
-                    {showSuggestionsDropdown && suggestions.length > 0 && (
-                      <div className="absolute z-20 left-0 right-0 mt-1 bg-white border border-[#D4DFD8] rounded-lg shadow-lg overflow-hidden divide-y divide-[#EDF2EE]">
-                        <div className="px-3 py-1.5 bg-[#F8FAF9] text-[11px] font-medium text-[#5A6E62] flex justify-between items-center">
-                          <span>Suggestions from Open Food Facts</span>
+                    {/* Suggestions Dropdown: IFCT matches first, then Open Food Facts */}
+                    {showSuggestionsDropdown && (ifctSuggestions.length > 0 || suggestions.length > 0) && (
+                      <div className="absolute z-20 left-0 right-0 mt-1 bg-white border border-[#D4DFD8] rounded-lg shadow-lg overflow-hidden divide-y divide-[#EDF2EE] max-h-72 overflow-y-auto">
+                        <div className="px-3 py-1.5 bg-[#F8FAF9] text-[11px] font-medium text-[#5A6E62] flex justify-between items-center sticky top-0 z-10 border-b border-[#EDF2EE]">
+                          <span>Food Database Suggestions</span>
                           <button
                             type="button"
                             onClick={() => setShowSuggestionsDropdown(false)}
@@ -765,33 +841,108 @@ export function ManualEntrySection({ selectedMember, onAnalysisComplete }: Manua
                             <X className="w-3 h-3" />
                           </button>
                         </div>
-                        {suggestions.map((s) => (
-                          <button
-                            key={s.id}
-                            type="button"
-                            onClick={() => handleSelectSuggestion(s)}
-                            className="w-full text-left px-3.5 py-2 hover:bg-[#F0FDF4] transition-colors flex items-center justify-between text-xs cursor-pointer"
-                          >
-                            <div>
-                              <p className="font-medium text-[#111C16]">{s.name}</p>
-                              <p className="text-[11px] text-[#5A6E62]">
-                                {s.brand ? `${s.brand} · ` : ''}
-                                {s.category || 'Uncategorized'}
-                              </p>
+
+                        {/* 1. IFCT Matches (raw ingredients) */}
+                        {ifctSuggestions.filter((r) => r.item.dataset === 'ifct_2017').length > 0 && (
+                          <div>
+                            <div className="px-3 py-1 bg-[#F0FDF4] text-[10px] font-semibold text-[#15803D] uppercase tracking-wider">
+                              IFCT 2017 (raw ingredients)
                             </div>
-                            <span className="text-[10px] text-[#15803D] font-medium bg-[#DCFCE7] px-2 py-0.5 rounded">
-                              Pre-fill
-                            </span>
-                          </button>
-                        ))}
+                            {ifctSuggestions
+                              .filter((r) => r.item.dataset === 'ifct_2017')
+                              .map((res) => (
+                                <button
+                                  key={res.item.id}
+                                  type="button"
+                                  onClick={() => handleSelectIFCTSuggestion(res)}
+                                  className="w-full text-left px-3.5 py-2 hover:bg-[#F0FDF4] transition-colors flex items-center justify-between text-xs cursor-pointer"
+                                >
+                                  <div>
+                                    <p className="font-medium text-[#111C16]">{res.item.name}</p>
+                                    <p className="text-[11px] text-[#5A6E62]">
+                                      {res.item.group} · {res.item.aliases.slice(0, 3).join(', ')}
+                                    </p>
+                                  </div>
+                                  <span className="text-[10px] text-[#15803D] font-medium bg-[#DCFCE7] px-2 py-0.5 rounded">
+                                    IFCT Pre-fill
+                                  </span>
+                                </button>
+                              ))}
+                          </div>
+                        )}
+
+                        {/* 2. Indian Dishes Matches (approximate) */}
+                        {ifctSuggestions.filter((r) => r.item.dataset !== 'ifct_2017').length > 0 && (
+                          <div>
+                            <div className="px-3 py-1 bg-[#FEF3C7] text-[10px] font-semibold text-[#B45309] uppercase tracking-wider">
+                              Indian dishes (approximate)
+                            </div>
+                            {ifctSuggestions
+                              .filter((r) => r.item.dataset !== 'ifct_2017')
+                              .map((res) => (
+                                <button
+                                  key={res.item.id}
+                                  type="button"
+                                  onClick={() => handleSelectIFCTSuggestion(res)}
+                                  className="w-full text-left px-3.5 py-2 hover:bg-[#FFFBEB] transition-colors flex items-center justify-between text-xs cursor-pointer"
+                                >
+                                  <div>
+                                    <div className="flex items-center gap-2">
+                                      <p className="font-medium text-[#111C16]">{res.item.name}</p>
+                                      {res.item.reliability === 'low' && (
+                                        <span className="text-[10px] text-[#B91C1C] bg-[#FEE2E2] px-1.5 py-0.2 rounded font-normal">
+                                          values may be inaccurate
+                                        </span>
+                                      )}
+                                    </div>
+                                    <p className="text-[11px] text-[#5A6E62]">
+                                      {res.item.group}
+                                      {res.item.aliases && res.item.aliases.length > 0 ? ` · ${res.item.aliases.slice(0, 3).join(', ')}` : ''}
+                                    </p>
+                                  </div>
+                                  <span className="text-[10px] text-[#B45309] font-medium bg-[#FEF3C7] px-2 py-0.5 rounded">
+                                    Dish Pre-fill
+                                  </span>
+                                </button>
+                              ))}
+                          </div>
+                        )}
+
+                        {/* 3. Open Food Facts Matches */}
+                        {suggestions.length > 0 && (
+                          <div>
+                            <div className="px-3 py-1 bg-[#F8FAF9] text-[10px] font-semibold text-[#5A6E62] uppercase tracking-wider">
+                              Open Food Facts Products
+                            </div>
+                            {suggestions.map((s) => (
+                              <button
+                                key={s.id}
+                                type="button"
+                                onClick={() => handleSelectSuggestion(s)}
+                                className="w-full text-left px-3.5 py-2 hover:bg-[#F8FAF9] transition-colors flex items-center justify-between text-xs cursor-pointer"
+                              >
+                                <div>
+                                  <p className="font-medium text-[#111C16]">{s.name}</p>
+                                  <p className="text-[11px] text-[#5A6E62]">
+                                    {s.brand ? `${s.brand} · ` : ''}
+                                    {s.category || 'Uncategorized'}
+                                  </p>
+                                </div>
+                                <span className="text-[10px] text-[#4B5E53] font-medium bg-[#E8EFEA] px-2 py-0.5 rounded">
+                                  OFF Pre-fill
+                                </span>
+                              </button>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     )}
 
-                    {/* OFF Pre-fill Note */}
-                    {offPreFillNote && (
+                    {/* Pre-fill Note */}
+                    {preFillNote && (
                       <div className="mt-2 p-2.5 rounded-lg bg-[#F8FAF9] border border-[#D4DFD8] text-xs text-[#4B5E53] flex items-center gap-2">
                         <Info className="w-4 h-4 text-[#15803D] shrink-0" />
-                        <span>{offPreFillNote}</span>
+                        <span>{preFillNote}</span>
                       </div>
                     )}
                   </div>

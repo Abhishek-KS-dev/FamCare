@@ -1,0 +1,802 @@
+[
+  {
+    "id": "IFCT_A001",
+    "name": "Okra / Lady's Finger",
+    "aliases": ["ladies finger", "lady finger", "lady's finger", "bhindi", "okra", "bendakaya", "bhendi", "vendakkai"],
+    "group": "Vegetables",
+    "per100g": {
+      "energyKcal": 27.49,
+      "carbohydrates": 3.79,
+      "sugars": 1.48,
+      "protein": 1.9,
+      "fat": 0.19,
+      "saturatedFat": 0.04,
+      "sodium": 0.0075,
+      "fiber": 3.6
+    }
+  },
+  {
+    "id": "IFCT_A002",
+    "name": "Spinach",
+    "aliases": ["palak", "fresh spinach", "spinach leaves", "keerai", "palakura"],
+    "group": "Vegetables",
+    "per100g": {
+      "energyKcal": 24.38,
+      "carbohydrates": 2.22,
+      "sugars": 0.42,
+      "protein": 2.01,
+      "fat": 0.42,
+      "saturatedFat": 0.07,
+      "sodium": 0.0585,
+      "fiber": 2.22
+    }
+  },
+  {
+    "id": "IFCT_A003",
+    "name": "Basmati Rice (Raw, Polished)",
+    "aliases": ["basmati rice", "white rice", "raw basmati rice", "chawal", "arisi", "tandul", "rice raw"],
+    "group": "Grains & Rice",
+    "per100g": {
+      "energyKcal": 353.49,
+      "carbohydrates": 78.24,
+      "sugars": 0.12,
+      "protein": 6.81,
+      "fat": 0.52,
+      "saturatedFat": 0.15,
+      "sodium": 0.0042,
+      "fiber": 2.81
+    }
+  },
+  {
+    "id": "IFCT_A004",
+    "name": "Brown Rice (Raw)",
+    "aliases": ["brown rice", "unpolished rice", "red rice"],
+    "group": "Grains & Rice",
+    "per100g": {
+      "energyKcal": 343.45,
+      "carbohydrates": 72.15,
+      "sugars": 0.65,
+      "protein": 7.94,
+      "fat": 1.83,
+      "saturatedFat": 0.41,
+      "sodium": 0.0068,
+      "fiber": 4.52
+    }
+  },
+  {
+    "id": "IFCT_A005",
+    "name": "Wheat Whole Flour",
+    "aliases": ["atta", "whole wheat flour", "gehu ka atta", "wheat flour"],
+    "group": "Grains & Rice",
+    "per100g": {
+      "energyKcal": 320.27,
+      "carbohydrates": 64.29,
+      "sugars": 1.72,
+      "protein": 10.57,
+      "fat": 1.47,
+      "saturatedFat": 0.31,
+      "sodium": 0.0089,
+      "fiber": 11.23
+    }
+  },
+  {
+    "id": "IFCT_A006",
+    "name": "Red Gram Dal / Pigeon Pea",
+    "aliases": ["toor dal", "tur dal", "arhar dal", "tuvar dal", "red gram split", "pigeon pea", "kandi pappu", "thuvaram paruppu"],
+    "group": "Legumes & Pulses",
+    "per100g": {
+      "energyKcal": 330.55,
+      "carbohydrates": 54.34,
+      "sugars": 3.12,
+      "protein": 22.31,
+      "fat": 1.49,
+      "saturatedFat": 0.32,
+      "sodium": 0.0078,
+      "fiber": 9.12
+    }
+  },
+  {
+    "id": "IFCT_A007",
+    "name": "Bengal Gram Dal / Chickpea Split",
+    "aliases": ["chana dal", "chana", "bengal gram", "split chickpea", "kadale bele", "senaga pappu"],
+    "group": "Legumes & Pulses",
+    "per100g": {
+      "energyKcal": 335.33,
+      "carbohydrates": 57.12,
+      "sugars": 2.85,
+      "protein": 21.55,
+      "fat": 5.34,
+      "saturatedFat": 0.64,
+      "sodium": 0.0245,
+      "fiber": 15.2
+    }
+  },
+  {
+    "id": "IFCT_A008",
+    "name": "Chickpeas / Kabuli Chana",
+    "aliases": ["chickpeas", "kabuli chana", "white chana", "garbanzo beans", "safed chana"],
+    "group": "Legumes & Pulses",
+    "per100g": {
+      "energyKcal": 364.01,
+      "carbohydrates": 60.9,
+      "sugars": 3.7,
+      "protein": 19.3,
+      "fat": 6.04,
+      "saturatedFat": 0.63,
+      "sodium": 0.024,
+      "fiber": 17.4
+    }
+  },
+  {
+    "id": "IFCT_A009",
+    "name": "Green Gram Dal / Moong Dal",
+    "aliases": ["moong dal", "mung dal", "green gram split", "yellow moong", "pesara pappu", "paasi paruppu"],
+    "group": "Legumes & Pulses",
+    "per100g": {
+      "energyKcal": 325.29,
+      "carbohydrates": 56.82,
+      "sugars": 2.1,
+      "protein": 24.52,
+      "fat": 1.15,
+      "saturatedFat": 0.28,
+      "sodium": 0.0152,
+      "fiber": 8.24
+    }
+  },
+  {
+    "id": "IFCT_A010",
+    "name": "Black Gram Dal / Urad Dal",
+    "aliases": ["urad dal", "black gram split", "ulutham paruppu", "minapa pappu"],
+    "group": "Legumes & Pulses",
+    "per100g": {
+      "energyKcal": 328.15,
+      "carbohydrates": 55.41,
+      "sugars": 1.95,
+      "protein": 24.0,
+      "fat": 1.44,
+      "saturatedFat": 0.34,
+      "sodium": 0.0195,
+      "fiber": 10.45
+    }
+  },
+  {
+    "id": "IFCT_A011",
+    "name": "Red Lentil / Masoor Dal",
+    "aliases": ["masoor dal", "masur dal", "red lentils", "split red lentils"],
+    "group": "Legumes & Pulses",
+    "per100g": {
+      "energyKcal": 322.66,
+      "carbohydrates": 56.45,
+      "sugars": 1.8,
+      "protein": 24.63,
+      "fat": 0.72,
+      "saturatedFat": 0.16,
+      "sodium": 0.0098,
+      "fiber": 10.7
+    }
+  },
+  {
+    "id": "IFCT_A012",
+    "name": "Potato",
+    "aliases": ["potato", "potatoes", "aloo", "batata", "alu", "urulaikizhangu"],
+    "group": "Vegetables",
+    "per100g": {
+      "energyKcal": 69.79,
+      "carbohydrates": 15.34,
+      "sugars": 0.62,
+      "protein": 1.6,
+      "fat": 0.13,
+      "saturatedFat": 0.03,
+      "sodium": 0.0062,
+      "fiber": 1.7
+    }
+  },
+  {
+    "id": "IFCT_A013",
+    "name": "Onion",
+    "aliases": ["onion", "onions", "pyaz", "kanda", "dungri", "vengayam", "ullipayalu"],
+    "group": "Vegetables",
+    "per100g": {
+      "energyKcal": 48.04,
+      "carbohydrates": 9.34,
+      "sugars": 4.24,
+      "protein": 1.4,
+      "fat": 0.18,
+      "saturatedFat": 0.04,
+      "sodium": 0.0041,
+      "fiber": 2.3
+    }
+  },
+  {
+    "id": "IFCT_A014",
+    "name": "Tomato",
+    "aliases": ["tomato", "tomatoes", "tamatar", "thakkali", "tamata"],
+    "group": "Vegetables",
+    "per100g": {
+      "energyKcal": 20.32,
+      "carbohydrates": 3.32,
+      "sugars": 2.45,
+      "protein": 0.9,
+      "fat": 0.22,
+      "saturatedFat": 0.03,
+      "sodium": 0.0051,
+      "fiber": 1.4
+    }
+  },
+  {
+    "id": "IFCT_A015",
+    "name": "Cauliflower",
+    "aliases": ["cauliflower", "phool gobi", "gobi", "phulgobi", "pookkose"],
+    "group": "Vegetables",
+    "per100g": {
+      "energyKcal": 24.86,
+      "carbohydrates": 3.98,
+      "sugars": 1.91,
+      "protein": 2.14,
+      "fat": 0.35,
+      "saturatedFat": 0.06,
+      "sodium": 0.0182,
+      "fiber": 2.44
+    }
+  },
+  {
+    "id": "IFCT_A016",
+    "name": "Cabbage",
+    "aliases": ["cabbage", "patta gobi", "bandha gobi", "muttaikose"],
+    "group": "Vegetables",
+    "per100g": {
+      "energyKcal": 21.27,
+      "carbohydrates": 3.75,
+      "sugars": 2.2,
+      "protein": 1.36,
+      "fat": 0.15,
+      "saturatedFat": 0.03,
+      "sodium": 0.0125,
+      "fiber": 2.8
+    }
+  },
+  {
+    "id": "IFCT_A017",
+    "name": "Carrot",
+    "aliases": ["carrot", "carrots", "gajar"],
+    "group": "Vegetables",
+    "per100g": {
+      "energyKcal": 33.7,
+      "carbohydrates": 6.78,
+      "sugars": 3.8,
+      "protein": 0.95,
+      "fat": 0.24,
+      "saturatedFat": 0.04,
+      "sodium": 0.0356,
+      "fiber": 4.4
+    }
+  },
+  {
+    "id": "IFCT_A018",
+    "name": "Brinjal / Eggplant",
+    "aliases": ["brinjal", "eggplant", "baingan", "aubergine", "vankaya", "kathirikai"],
+    "group": "Vegetables",
+    "per100g": {
+      "energyKcal": 24.62,
+      "carbohydrates": 4.0,
+      "sugars": 2.35,
+      "protein": 1.4,
+      "fat": 0.3,
+      "saturatedFat": 0.05,
+      "sodium": 0.003,
+      "fiber": 3.4
+    }
+  },
+  {
+    "id": "IFCT_A019",
+    "name": "Bitter Gourd",
+    "aliases": ["bitter gourd", "karela", "kakarakaya", "pavakkai"],
+    "group": "Vegetables",
+    "per100g": {
+      "energyKcal": 20.79,
+      "carbohydrates": 3.12,
+      "sugars": 1.25,
+      "protein": 1.56,
+      "fat": 0.17,
+      "saturatedFat": 0.03,
+      "sodium": 0.0045,
+      "fiber": 2.8
+    }
+  },
+  {
+    "id": "IFCT_A020",
+    "name": "Bottle Gourd",
+    "aliases": ["bottle gourd", "lauki", "doodhi", "ghiya", "sorakaya", "suraikkai"],
+    "group": "Vegetables",
+    "per100g": {
+      "energyKcal": 13.62,
+      "carbohydrates": 2.5,
+      "sugars": 1.6,
+      "protein": 0.5,
+      "fat": 0.08,
+      "saturatedFat": 0.02,
+      "sodium": 0.0018,
+      "fiber": 1.2
+    }
+  },
+  {
+    "id": "IFCT_A021",
+    "name": "Ginger (Fresh)",
+    "aliases": ["ginger", "fresh ginger", "adrak", "allam", "inji"],
+    "group": "Herbs & Spices",
+    "per100g": {
+      "energyKcal": 54.97,
+      "carbohydrates": 10.27,
+      "sugars": 1.7,
+      "protein": 1.82,
+      "fat": 0.6,
+      "saturatedFat": 0.14,
+      "sodium": 0.0062,
+      "fiber": 4.4
+    }
+  },
+  {
+    "id": "IFCT_A022",
+    "name": "Garlic (Raw)",
+    "aliases": ["garlic", "lahsun", "lasun", "vellullipaya", "poondu"],
+    "group": "Herbs & Spices",
+    "per100g": {
+      "energyKcal": 123.09,
+      "carbohydrates": 24.28,
+      "sugars": 1.0,
+      "protein": 6.36,
+      "fat": 0.5,
+      "saturatedFat": 0.09,
+      "sodium": 0.017,
+      "fiber": 2.1
+    }
+  },
+  {
+    "id": "IFCT_A023",
+    "name": "Coriander Leaves / Fresh Cilantro",
+    "aliases": ["coriander leaves", "cilantro", "dhania patta", "kothmir", "kothamalli"],
+    "group": "Herbs & Spices",
+    "per100g": {
+      "energyKcal": 31.07,
+      "carbohydrates": 3.26,
+      "sugars": 0.87,
+      "protein": 2.87,
+      "fat": 0.7,
+      "saturatedFat": 0.11,
+      "sodium": 0.042,
+      "fiber": 4.1
+    }
+  },
+  {
+    "id": "IFCT_A024",
+    "name": "Fenugreek Leaves / Methi",
+    "aliases": ["fenugreek leaves", "methi", "fresh methi", "vendhaya keerai", "menthikura"],
+    "group": "Vegetables",
+    "per100g": {
+      "energyKcal": 34.66,
+      "carbohydrates": 4.23,
+      "sugars": null,
+      "protein": 4.4,
+      "fat": 0.9,
+      "saturatedFat": 0.15,
+      "sodium": 0.067,
+      "fiber": 4.9
+    }
+  },
+  {
+    "id": "IFCT_A025",
+    "name": "Green Chilli",
+    "aliases": ["green chilli", "green chili", "hari mirch", "pachamirapakaya", "pachai milagai"],
+    "group": "Herbs & Spices",
+    "per100g": {
+      "energyKcal": 45.41,
+      "carbohydrates": 6.82,
+      "sugars": 2.9,
+      "protein": 2.58,
+      "fat": 0.65,
+      "saturatedFat": 0.12,
+      "sodium": 0.007,
+      "fiber": 6.8
+    }
+  },
+  {
+    "id": "IFCT_A026",
+    "name": "Almonds",
+    "aliases": ["almonds", "almond", "badam", "raw almonds", "badam pappu"],
+    "group": "Nuts & Seeds",
+    "per100g": {
+      "energyKcal": 609.23,
+      "carbohydrates": 10.5,
+      "sugars": 4.35,
+      "protein": 20.8,
+      "fat": 58.9,
+      "saturatedFat": 4.4,
+      "sodium": 0.001,
+      "fiber": 10.5
+    }
+  },
+  {
+    "id": "IFCT_A027",
+    "name": "Cashew Nut",
+    "aliases": ["cashew", "cashews", "kaju", "cashew nut", "jeedipappu", "mundiri"],
+    "group": "Nuts & Seeds",
+    "per100g": {
+      "energyKcal": 582.94,
+      "carbohydrates": 22.3,
+      "sugars": 5.91,
+      "protein": 21.2,
+      "fat": 46.9,
+      "saturatedFat": 9.2,
+      "sodium": 0.012,
+      "fiber": 3.7
+    }
+  },
+  {
+    "id": "IFCT_A028",
+    "name": "Walnut",
+    "aliases": ["walnut", "walnuts", "akhrot", "akrot"],
+    "group": "Nuts & Seeds",
+    "per100g": {
+      "energyKcal": 671.13,
+      "carbohydrates": 11.0,
+      "sugars": 2.61,
+      "protein": 15.6,
+      "fat": 64.5,
+      "saturatedFat": 5.8,
+      "sodium": 0.002,
+      "fiber": 6.7
+    }
+  },
+  {
+    "id": "IFCT_A029",
+    "name": "Groundnut / Peanut",
+    "aliases": ["peanut", "peanuts", "groundnut", "moongphali", "mungfali", "verkkadalai", "pallilu"],
+    "group": "Nuts & Seeds",
+    "per100g": {
+      "energyKcal": 520.08,
+      "carbohydrates": 17.5,
+      "sugars": 4.72,
+      "protein": 25.8,
+      "fat": 39.8,
+      "saturatedFat": 6.8,
+      "sodium": 0.004,
+      "fiber": 8.5
+    }
+  },
+  {
+    "id": "IFCT_A030",
+    "name": "Banana",
+    "aliases": ["banana", "bananas", "kela", "kezhangu", "arati pandu", "vazhaipazham"],
+    "group": "Fruits",
+    "per100g": {
+      "energyKcal": 110.66,
+      "carbohydrates": 24.3,
+      "sugars": 15.5,
+      "protein": 1.25,
+      "fat": 0.33,
+      "saturatedFat": 0.11,
+      "sodium": 0.005,
+      "fiber": 2.6
+    }
+  },
+  {
+    "id": "IFCT_A031",
+    "name": "Apple",
+    "aliases": ["apple", "apples", "seb"],
+    "group": "Fruits",
+    "per100g": {
+      "energyKcal": 62.38,
+      "carbohydrates": 13.8,
+      "sugars": 10.39,
+      "protein": 0.36,
+      "fat": 0.44,
+      "saturatedFat": 0.08,
+      "sodium": 0.001,
+      "fiber": 2.4
+    }
+  },
+  {
+    "id": "IFCT_A032",
+    "name": "Mango (Ripe)",
+    "aliases": ["mango", "ripe mango", "aam", "mamidi pandu", "mambazham"],
+    "group": "Fruits",
+    "per100g": {
+      "energyKcal": 60.23,
+      "carbohydrates": 14.98,
+      "sugars": 13.66,
+      "protein": 0.82,
+      "fat": 0.38,
+      "saturatedFat": 0.09,
+      "sodium": 0.002,
+      "fiber": 1.6
+    }
+  },
+  {
+    "id": "IFCT_A033",
+    "name": "Papaya (Ripe)",
+    "aliases": ["papaya", "ripe papaya", "papita", "boppayi pandu", "pappali"],
+    "group": "Fruits",
+    "per100g": {
+      "energyKcal": 32.27,
+      "carbohydrates": 7.22,
+      "sugars": 5.9,
+      "protein": 0.61,
+      "fat": 0.14,
+      "saturatedFat": 0.04,
+      "sodium": 0.006,
+      "fiber": 1.7
+    }
+  },
+  {
+    "id": "IFCT_A034",
+    "name": "Guava",
+    "aliases": ["guava", "amrood", "jama pandu", "koyyapazham"],
+    "group": "Fruits",
+    "per100g": {
+      "energyKcal": 51.39,
+      "carbohydrates": 11.2,
+      "sugars": 8.92,
+      "protein": 0.99,
+      "fat": 0.34,
+      "saturatedFat": 0.08,
+      "sodium": 0.0055,
+      "fiber": 5.2
+    }
+  },
+  {
+    "id": "IFCT_A035",
+    "name": "Cow Milk (Whole)",
+    "aliases": ["cow milk", "milk", "fresh milk", "doodh", "aavu paalu", "pasumpal"],
+    "group": "Dairy & Eggs",
+    "per100g": {
+      "energyKcal": 72.89,
+      "carbohydrates": 4.85,
+      "sugars": 4.85,
+      "protein": 3.26,
+      "fat": 4.48,
+      "saturatedFat": 2.78,
+      "sodium": 0.051,
+      "fiber": null
+    }
+  },
+  {
+    "id": "IFCT_A036",
+    "name": "Buffalo Milk (Whole)",
+    "aliases": ["buffalo milk", "bhains ka doodh", "gedha paalu"],
+    "group": "Dairy & Eggs",
+    "per100g": {
+      "energyKcal": 107.31,
+      "carbohydrates": 5.18,
+      "sugars": 5.18,
+      "protein": 3.75,
+      "fat": 7.96,
+      "saturatedFat": 5.12,
+      "sodium": 0.044,
+      "fiber": null
+    }
+  },
+  {
+    "id": "IFCT_A037",
+    "name": "Paneer / Cottage Cheese",
+    "aliases": ["paneer", "cottage cheese", "indian cottage cheese"],
+    "group": "Dairy & Eggs",
+    "per100g": {
+      "energyKcal": 289.44,
+      "carbohydrates": 3.38,
+      "sugars": 2.4,
+      "protein": 18.86,
+      "fat": 22.3,
+      "saturatedFat": 14.1,
+      "sodium": 0.022,
+      "fiber": null
+    }
+  },
+  {
+    "id": "IFCT_A038",
+    "name": "Curd / Plain Yogurt",
+    "aliases": ["curd", "dahi", "plain curd", "yogurt", "perugu", "thayir"],
+    "group": "Dairy & Eggs",
+    "per100g": {
+      "energyKcal": 60.95,
+      "carbohydrates": 4.4,
+      "sugars": 4.4,
+      "protein": 3.1,
+      "fat": 3.4,
+      "saturatedFat": 2.1,
+      "sodium": 0.046,
+      "fiber": null
+    }
+  },
+  {
+    "id": "IFCT_A039",
+    "name": "Egg (Hen, Whole, Raw)",
+    "aliases": ["egg", "eggs", "hen egg", "anda", "kodi guddu", "muttai"],
+    "group": "Dairy & Eggs",
+    "per100g": {
+      "energyKcal": 134.8,
+      "carbohydrates": 0.72,
+      "sugars": 0.4,
+      "protein": 13.3,
+      "fat": 8.7,
+      "saturatedFat": 2.8,
+      "sodium": 0.142,
+      "fiber": null
+    }
+  },
+  {
+    "id": "IFCT_A040",
+    "name": "Chicken Meat (Broiler, Raw)",
+    "aliases": ["chicken", "fresh chicken", "chicken breast", "murgh", "kodi mamsam", "kozhi irachi"],
+    "group": "Meat & Poultry",
+    "per100g": {
+      "energyKcal": 168.26,
+      "carbohydrates": null,
+      "sugars": null,
+      "protein": 21.8,
+      "fat": 8.9,
+      "saturatedFat": 2.6,
+      "sodium": 0.074,
+      "fiber": null
+    }
+  },
+  {
+    "id": "IFCT_A041",
+    "name": "Mutton / Goat Meat (Raw)",
+    "aliases": ["mutton", "goat meat", "bakra", "gosht", "mamsam", "aattu iraichi"],
+    "group": "Meat & Poultry",
+    "per100g": {
+      "energyKcal": 118.07,
+      "carbohydrates": null,
+      "sugars": null,
+      "protein": 21.4,
+      "fat": 3.6,
+      "saturatedFat": 1.4,
+      "sodium": 0.068,
+      "fiber": null
+    }
+  },
+  {
+    "id": "IFCT_A042",
+    "name": "Rohu Fish (Freshwater, Raw)",
+    "aliases": ["rohu", "rohu fish", "rui mach", "carp fish", "fresh fish", "chepa"],
+    "group": "Fish & Seafood",
+    "per100g": {
+      "energyKcal": 97.04,
+      "carbohydrates": null,
+      "sugars": null,
+      "protein": 19.7,
+      "fat": 1.9,
+      "saturatedFat": 0.52,
+      "sodium": 0.062,
+      "fiber": null
+    }
+  },
+  {
+    "id": "IFCT_A043",
+    "name": "Catla Fish (Raw)",
+    "aliases": ["catla", "katla", "katla fish"],
+    "group": "Fish & Seafood",
+    "per100g": {
+      "energyKcal": 105.16,
+      "carbohydrates": null,
+      "sugars": null,
+      "protein": 19.5,
+      "fat": 2.8,
+      "saturatedFat": 0.74,
+      "sodium": 0.058,
+      "fiber": null
+    }
+  },
+  {
+    "id": "IFCT_A044",
+    "name": "Prawn / Shrimp (Raw)",
+    "aliases": ["prawn", "prawns", "shrimp", "jhinga", "royyalu", "iraal"],
+    "group": "Fish & Seafood",
+    "per100g": {
+      "energyKcal": 89.15,
+      "carbohydrates": 0.8,
+      "sugars": null,
+      "protein": 19.3,
+      "fat": 0.9,
+      "saturatedFat": 0.28,
+      "sodium": 0.145,
+      "fiber": null
+    }
+  },
+  {
+    "id": "IFCT_A045",
+    "name": "Ghee (Clarified Butter)",
+    "aliases": ["ghee", "desi ghee", "clarified butter", "neyyu", "nei"],
+    "group": "Dairy & Eggs",
+    "per100g": {
+      "energyKcal": 899.86,
+      "carbohydrates": null,
+      "sugars": null,
+      "protein": null,
+      "fat": 99.5,
+      "saturatedFat": 65.2,
+      "sodium": null,
+      "fiber": null
+    }
+  },
+  {
+    "id": "IFCT_A046",
+    "name": "Mustard Oil",
+    "aliases": ["mustard oil", "sarson ka tel"],
+    "group": "Other Unpackaged Food",
+    "per100g": {
+      "energyKcal": 900.1,
+      "carbohydrates": null,
+      "sugars": null,
+      "protein": null,
+      "fat": 99.8,
+      "saturatedFat": 11.6,
+      "sodium": null,
+      "fiber": null
+    }
+  },
+  {
+    "id": "IFCT_A047",
+    "name": "Jaggery (Cane)",
+    "aliases": ["jaggery", "cane jaggery", "gur", "bellam", "vellam"],
+    "group": "Sugar & Sweeteners",
+    "per100g": {
+      "energyKcal": 353.49,
+      "carbohydrates": 85.06,
+      "sugars": 82.5,
+      "protein": 0.9,
+      "fat": 0.1,
+      "saturatedFat": 0.03,
+      "sodium": 0.029,
+      "fiber": null
+    }
+  },
+  {
+    "id": "IFCT_A048",
+    "name": "Refined White Sugar",
+    "aliases": ["sugar", "white sugar", "refined sugar", "cheeni", "shakkar", "panchadara", "sakkarai"],
+    "group": "Sugar & Sweeteners",
+    "per100g": {
+      "energyKcal": 398.9,
+      "carbohydrates": 99.8,
+      "sugars": 99.8,
+      "protein": null,
+      "fat": null,
+      "saturatedFat": null,
+      "sodium": 0.001,
+      "fiber": null
+    }
+  },
+  {
+    "id": "IFCT_A049",
+    "name": "Honey",
+    "aliases": ["honey", "raw honey", "shehad", "thene", "thaen"],
+    "group": "Sugar & Sweeteners",
+    "per100g": {
+      "energyKcal": 319.07,
+      "carbohydrates": 79.5,
+      "sugars": 75.1,
+      "protein": 0.3,
+      "fat": null,
+      "saturatedFat": null,
+      "sodium": 0.004,
+      "fiber": 0.2
+    }
+  },
+  {
+    "id": "IFCT_A050",
+    "name": "Green Peas (Fresh, Raw)",
+    "aliases": ["green peas", "peas", "matar", "hari matar", "bataani", "pattani"],
+    "group": "Vegetables",
+    "per100g": {
+      "energyKcal": 84.85,
+      "carbohydrates": 14.45,
+      "sugars": 5.67,
+      "protein": 5.42,
+      "fat": 0.4,
+      "saturatedFat": 0.07,
+      "sodium": 0.005,
+      "fiber": 5.1
+    }
+  }
+]

@@ -19,9 +19,11 @@ import {
   evaluateAlternativeCandidates,
 } from './deterministicRules.ts';
 import { fetchProductByBarcode, searchOpenFoodFactsProducts } from './openFoodFacts.ts';
+import { searchIFCT } from './ifct.ts';
 
-const AGENT_MODEL = 'gemini-4-hydrogen';
+const AGENT_MODEL = process.env.GEMINI_AGENT_MODEL?.trim() || 'gemini-4-hydrogen';
 const MAX_TOOL_CALLS = 8;
+const GEMINI_TURN_TIMEOUT_MS = 20000;
 
 function getGeminiClient(): GoogleGenAI | null {
   const apiKey = process.env.GEMINI_API_KEY?.trim();
@@ -169,7 +171,9 @@ STRICT OPERATIONAL RULES:
    - If hasSelectedFamilyMember is true, call check_family_compatibility.
    - Call recommend_alternatives ONLY when: (a) check_family_compatibility returns CONFLICT, OR (b) analyze_nutrition flags major high-threshold concerns and alternatives are helpful, OR (c) requestAlternatives is explicitly true. Do NOT wastefully call recommend_alternatives for a missing product or unpackaged single-ingredient raw foods unless there is a conflict or user requested alternatives.
    - If ingredients are missing on a packaged barcode product, clearly note that OCR label scanning or manual correction is needed.
-6. Keep your final response concise (3–5 clear sentences in plain prose, no markdown headings or bullet clutter): summarize the product findings, missing information warnings, whether any compatibility conflicts occurred (without inventing details you weren't given), and whether alternatives were retrieved.`;
+6. PARALLEL TOOL CALLS (latency rule): after any required first step, emit ALL independent tool calls together in ONE response instead of one per turn. analyze_ingredients_and_allergens, analyze_nutrition and check_family_compatibility are independent: request them together in a single turn. Only call interpret_natural_language_entry alone first (when rawEntryText is present), because later tools depend on its result. Never spread independent tools across multiple turns.
+7. recommend_alternatives may return deferred=true for manual entries. That is expected: the app loads alternatives separately. Do not retry it and do not claim alternatives were retrieved.
+8. Keep your final response concise (3–5 clear sentences in plain prose, no markdown headings or bullet clutter): summarize the product findings, missing information warnings, whether any compatibility conflicts occurred (without inventing details you weren't given), and whether alternatives were retrieved.`;
 
 export interface RunAgentAnalysisInput {
   taskType: 'barcode_analysis' | 'ocr_analysis' | 'manual_analysis';
@@ -188,6 +192,71 @@ interface AgentExecutionState {
   familyCompatibility: FamilyCompatibilityResult | null;
   alternatives: AlternativeSearchResult | null;
   executionLogs: AgentToolLog[];
+  ifctMatchNote: string | null;
+}
+
+function applyIfctFallback(input: RunAgentAnalysisInput, state: AgentExecutionState): void {
+  if (input.taskType !== 'manual_analysis' || !state.product) {
+    return;
+  }
+
+  const n = state.product.nutriments;
+  const allNull =
+    n.energyKcal === null &&
+    n.sugars === null &&
+    n.protein === null &&
+    n.fat === null &&
+    n.saturatedFat === null &&
+    n.carbohydrates === null &&
+    n.sodium === null &&
+    n.fiber === null;
+
+  if (!allNull) {
+    return;
+  }
+
+  const startedAt = Date.now();
+  const searchResults = searchIFCT(state.product.name, 1, { datasets: ['ifct_2017'] });
+  const topMatch = searchResults[0];
+
+  if (topMatch && topMatch.score <= 0.3) {
+    state.product.nutriments = { ...topMatch.product.nutriments };
+
+    const missingFields: string[] = [];
+    if (!state.product.brand && state.product.source !== 'manual_entry') missingFields.push('Brand');
+    if (!state.product.ingredientsText) missingFields.push('Ingredients List');
+    if (state.product.nutriments.energyKcal === null) missingFields.push('Energy (kcal)');
+    if (state.product.nutriments.sugars === null) missingFields.push('Sugars');
+    if (state.product.nutriments.protein === null) missingFields.push('Protein');
+    if (state.product.nutriments.fat === null) missingFields.push('Total Fat');
+    if (state.product.nutriments.saturatedFat === null) missingFields.push('Saturated Fat');
+    if (state.product.nutriments.carbohydrates === null) missingFields.push('Carbohydrates');
+    if (state.product.nutriments.sodium === null) missingFields.push('Sodium');
+    if (state.product.nutriments.fiber === null) missingFields.push('Fiber');
+    state.product.missingFields = missingFields;
+
+    state.ifctMatchNote = `Nutrition values were auto-matched from IFCT 2017 ("${topMatch.item.name}", raw, per 100 g edible portion). Please confirm this matches your item.`;
+
+    state.executionLogs.push({
+      step: state.executionLogs.length + 1,
+      toolName: 'ifct_nutrition_lookup',
+      reason: 'Auto-match missing manual food entry nutrition from IFCT 2017 dataset',
+      inputSummary: { query: state.product.name },
+      outputSummary: { matched: true, item: topMatch.item.name, score: topMatch.score },
+      durationMs: Math.max(1, Date.now() - startedAt),
+      status: 'success',
+    });
+  } else {
+    state.executionLogs.push({
+      step: state.executionLogs.length + 1,
+      toolName: 'ifct_nutrition_lookup',
+      reason: 'Auto-match missing manual food entry nutrition from IFCT 2017 dataset',
+      inputSummary: { query: state.product.name },
+      outputSummary: { matched: false, topScore: topMatch ? topMatch.score : null },
+      durationMs: Math.max(1, Date.now() - startedAt),
+      status: 'warning',
+    });
+  }
 }
 
 async function executeAgentTool(
@@ -313,6 +382,7 @@ async function executeAgentTool(
       recordLog('error', {}, out);
       return out;
     }
+    applyIfctFallback(input, state);
     const result = analyzeNutrition(state.product);
     state.nutritionalAnalysis = result;
     const out = {
@@ -365,6 +435,11 @@ async function executeAgentTool(
   }
 
   if (toolName === 'recommend_alternatives') {
+    if (input.taskType === 'manual_analysis' && !input.requestAlternatives) {
+      const out = { deferred: true, message: 'Alternatives are loaded separately by the app after this report. Do not retry.' };
+      recordLog('success', { deferred: true }, out);
+      return out;
+    }
     if (!state.product) {
       const out = { error: 'No base product loaded to search alternatives.' };
       recordLog('error', {}, out);
@@ -525,6 +600,19 @@ async function runDeterministicWorkflow(
   }
 }
 
+function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
+  let timer: NodeJS.Timeout | undefined;
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => {
+      reject(new Error(`${label} timed out after ${ms} ms.`));
+    }, ms);
+  });
+
+  return Promise.race([promise, timeoutPromise]).finally(() => {
+    if (timer) clearTimeout(timer);
+  });
+}
+
 export async function runFoodIntelligenceAgent(input: RunAgentAnalysisInput): Promise<AgentAnalysisReport> {
   const state: AgentExecutionState = {
     product: input.providedProduct ?? null,
@@ -534,6 +622,7 @@ export async function runFoodIntelligenceAgent(input: RunAgentAnalysisInput): Pr
     familyCompatibility: null,
     alternatives: null,
     executionLogs: [],
+    ifctMatchNote: null,
   };
 
   let orchestrationMode: 'gemini_agent' | 'deterministic_fallback' = 'deterministic_fallback';
@@ -584,14 +673,18 @@ export async function runFoodIntelligenceAgent(input: RunAgentAnalysisInput): Pr
       let toolCallsUsed = 0;
 
       while (toolCallsUsed < MAX_TOOL_CALLS) {
-        const response = await ai.models.generateContent({
-          model: AGENT_MODEL,
-          contents,
-          config: {
-            systemInstruction: AGENT_SYSTEM_INSTRUCTION,
-            tools: [{ functionDeclarations: AGENT_TOOL_DECLARATIONS }],
-          },
-        });
+        const response = await withTimeout(
+          ai.models.generateContent({
+            model: AGENT_MODEL,
+            contents,
+            config: {
+              systemInstruction: AGENT_SYSTEM_INSTRUCTION,
+              tools: [{ functionDeclarations: AGENT_TOOL_DECLARATIONS }],
+            },
+          }),
+          GEMINI_TURN_TIMEOUT_MS,
+          'Gemini agent turn'
+        );
 
         const modelContent = response.candidates?.[0]?.content;
         const calls = response.functionCalls;
@@ -714,6 +807,9 @@ export async function runFoodIntelligenceAgent(input: RunAgentAnalysisInput): Pr
 
   const missingInformationWarnings: string[] = [];
   if (state.product) {
+    if (state.ifctMatchNote) {
+      missingInformationWarnings.push(state.ifctMatchNote);
+    }
     if (!state.product.ingredientsText) {
       missingInformationWarnings.push(
         'Ingredients list is unavailable. Scan the label via OCR or enter ingredients manually for full allergen checking.'
