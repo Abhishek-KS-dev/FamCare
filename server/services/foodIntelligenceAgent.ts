@@ -25,7 +25,7 @@ const AGENT_MODEL = process.env.GEMINI_AGENT_MODEL?.trim() || 'gemini-4-hydrogen
 const MAX_TOOL_CALLS = 8;
 const GEMINI_TURN_TIMEOUT_MS = 20000;
 
-function getGeminiClient(): GoogleGenAI | null {
+export function getGeminiClient(): GoogleGenAI | null {
   const apiKey = process.env.GEMINI_API_KEY?.trim();
   if (!apiKey || apiKey === 'MY_GEMINI_API_KEY') {
     return null;
@@ -600,7 +600,7 @@ async function runDeterministicWorkflow(
   }
 }
 
-function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
+export function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
   let timer: NodeJS.Timeout | undefined;
   const timeoutPromise = new Promise<never>((_, reject) => {
     timer = setTimeout(() => {

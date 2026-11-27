@@ -14,8 +14,10 @@ import {
   evaluateAlternativeCandidates,
 } from '../services/deterministicRules.ts';
 import {
+  getGeminiClient,
   runFoodComparisonAgent,
   runFoodIntelligenceAgent,
+  withTimeout,
 } from '../services/foodIntelligenceAgent.ts';
 import {
   fetchProductByBarcode,
@@ -483,6 +485,154 @@ apiRouter.get('/products/ifct-search', requireAuth, async (req: AuthenticatedReq
   } catch (err) {
     console.error('IFCT search error:', err);
     res.status(500).json({ results: [], queryUsed: '', error: 'Failed to search IFCT 2017 database.' });
+  }
+});
+
+// ==========================================
+// Gemini Vision OCR Extraction Route
+// ==========================================
+apiRouter.post('/ocr/extract', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const rawMime = req.body?.mimeType;
+    const allowedMimes = ['image/jpeg', 'image/png', 'image/webp'];
+    if (typeof rawMime !== 'string' || !allowedMimes.includes(rawMime)) {
+      res.status(400).json({ error: 'Invalid mimeType. Must be image/jpeg, image/png, or image/webp.' });
+      return;
+    }
+    const mimeType = rawMime as 'image/jpeg' | 'image/png' | 'image/webp';
+
+    const rawBase64 = req.body?.imageBase64;
+    if (typeof rawBase64 !== 'string' || !rawBase64.trim()) {
+      res.status(400).json({ error: 'Missing imageBase64 payload.' });
+      return;
+    }
+
+    // Strip data URL prefix if sent
+    const base64Data = rawBase64.replace(/^data:[a-zA-Z0-9/+-]+;base64,/, '').trim();
+    // Validate decoded size <= ~1.5 MB (1.5 * 1024 * 1024 = 1,572,864 bytes)
+    const approxDecodedBytes = (base64Data.length * 3) / 4;
+    if (approxDecodedBytes > 1.6 * 1024 * 1024) {
+      res.status(400).json({ error: 'Image size exceeds the 1.5 MB limit. Please resize before uploading.' });
+      return;
+    }
+
+    const ai = getGeminiClient();
+    if (!ai) {
+      res.status(503).json({ error: 'Gemini API client is not configured on the server.' });
+      return;
+    }
+
+    const visionModel = process.env.GEMINI_VISION_MODEL?.trim() || process.env.GEMINI_AGENT_MODEL?.trim() || 'gemini-4-hydrogen';
+    const visionPrompt = `You transcribe food packaging labels. Transcribe ONLY text that is actually visible. Never guess, infer, or complete missing text. If part of a word, number, or ingredient list is cut off, hidden, blurred or unreadable, write [unreadable] in its place. Do not add allergens or ingredients that are not printed. For nutrition, use the PER 100 g / PER 100 ml column, not the per-serving column. Return null for any value you cannot read. Return JSON only: {productName, brand, ingredientsText, allergensText, additivesText, servingSize, servingsPerPack, per100: {energyKcal, protein, carbohydrates, sugars, addedSugars, fat, saturatedFat, transFat, sodiumMg, fiber}, unitBasis ('100 g' | '100 ml' | null), unreadableParts: string[], confidence: 'high' | 'medium' | 'low'}.`;
+
+    const response = await withTimeout(
+      ai.models.generateContent({
+        model: visionModel,
+        contents: [
+          {
+            role: 'user',
+            parts: [
+              {
+                inlineData: {
+                  data: base64Data,
+                  mimeType,
+                },
+              },
+              {
+                text: visionPrompt,
+              },
+            ],
+          },
+        ],
+        config: {
+          responseMimeType: 'application/json',
+        },
+      }),
+      25000,
+      'Gemini Vision Extraction'
+    );
+
+    const rawText = (response.text || '').trim();
+    if (!rawText) {
+      res.status(500).json({ error: 'Gemini vision model returned an empty response.' });
+      return;
+    }
+
+    // Clean code fences if any
+    const cleanedJsonText = rawText.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim();
+    let parsed: Record<string, unknown>;
+    try {
+      parsed = JSON.parse(cleanedJsonText);
+    } catch {
+      res.status(500).json({ error: 'Failed to parse JSON response from Gemini vision model.' });
+      return;
+    }
+
+    // Coerce and sanitize parsed structure
+    const parseNum = (v: unknown): number | null => {
+      if (v === null || v === undefined || v === '') return null;
+      if (typeof v === 'string') {
+        const cleaned = v.replace(/[^0-9.-]/g, '');
+        const n = Number(cleaned);
+        return Number.isFinite(n) && n >= 0 ? Math.round(n * 100) / 100 : null;
+      }
+      const num = Number(v);
+      return Number.isFinite(num) && num >= 0 ? Math.round(num * 100) / 100 : null;
+    };
+
+    const parseStr = (v: unknown, maxLen = 3000): string | null => {
+      if (typeof v !== 'string' || !v.trim()) return null;
+      return v.trim().slice(0, maxLen);
+    };
+
+    const rawPer100 = (parsed.per100 && typeof parsed.per100 === 'object')
+      ? (parsed.per100 as Record<string, unknown>)
+      : {};
+
+    const per100 = {
+      energyKcal: parseNum(rawPer100.energyKcal),
+      protein: parseNum(rawPer100.protein),
+      carbohydrates: parseNum(rawPer100.carbohydrates),
+      sugars: parseNum(rawPer100.sugars),
+      addedSugars: parseNum(rawPer100.addedSugars),
+      fat: parseNum(rawPer100.fat),
+      saturatedFat: parseNum(rawPer100.saturatedFat),
+      transFat: parseNum(rawPer100.transFat),
+      sodiumMg: parseNum(rawPer100.sodiumMg),
+      fiber: parseNum(rawPer100.fiber),
+    };
+
+    const rawUnreadable = Array.isArray(parsed.unreadableParts)
+      ? parsed.unreadableParts.map((u) => parseStr(u, 200)).filter(Boolean) as string[]
+      : [];
+
+    const rawUnit = typeof parsed.unitBasis === 'string' ? parsed.unitBasis.trim().toLowerCase() : '';
+    const unitBasis: '100 g' | '100 ml' | null =
+      rawUnit.includes('ml') ? '100 ml' : rawUnit.includes('g') ? '100 g' : null;
+
+    const rawConfidence = typeof parsed.confidence === 'string' ? parsed.confidence.trim().toLowerCase() : 'medium';
+    const confidence: 'high' | 'medium' | 'low' =
+      rawConfidence === 'high' || rawConfidence === 'low' ? rawConfidence : 'medium';
+
+    const extraction = {
+      productName: parseStr(parsed.productName, 200),
+      brand: parseStr(parsed.brand, 150),
+      ingredientsText: parseStr(parsed.ingredientsText, 4000),
+      allergensText: parseStr(parsed.allergensText, 500),
+      additivesText: parseStr(parsed.additivesText, 500),
+      servingSize: parseStr(parsed.servingSize, 100),
+      servingsPerPack: parseStr(parsed.servingsPerPack, 50),
+      per100,
+      unitBasis,
+      unreadableParts: rawUnreadable,
+      confidence,
+    };
+
+    res.json({ extraction });
+  } catch (err) {
+    console.error('OCR extract error:', err);
+    const msg = err instanceof Error ? err.message : 'Failed to extract label via Gemini Vision.';
+    res.status(500).json({ error: msg });
   }
 });
 

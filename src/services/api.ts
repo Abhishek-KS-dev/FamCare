@@ -66,6 +66,31 @@ export interface AuthUser {
   createdAt?: string;
 }
 
+export interface LabelExtractionData {
+  productName: string | null;
+  brand: string | null;
+  ingredientsText: string | null;
+  allergensText: string | null;
+  additivesText: string | null;
+  servingSize: string | null;
+  servingsPerPack: string | null;
+  per100: {
+    energyKcal: number | null;
+    protein: number | null;
+    carbohydrates: number | null;
+    sugars: number | null;
+    addedSugars: number | null;
+    fat: number | null;
+    saturatedFat: number | null;
+    transFat: number | null;
+    sodiumMg: number | null;
+    fiber: number | null;
+  };
+  unitBasis: '100 g' | '100 ml' | null;
+  unreadableParts: string[];
+  confidence: 'high' | 'medium' | 'low';
+}
+
 export interface BudgetSummaryResponse {
   month: string;
   currency: string;
@@ -237,6 +262,15 @@ export const api = {
     apiRequest<{ results: IFCTSearchResult[]; queryUsed: string; error?: string }>(
       `/api/products/ifct-search?q=${encodeURIComponent(query)}`
     ),
+
+  extractLabel: (payload: {
+    imageBase64: string;
+    mimeType: 'image/jpeg' | 'image/png' | 'image/webp';
+  }) =>
+    apiRequest<{ extraction: LabelExtractionData }>('/api/ocr/extract', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
 
   analyzeWithAgent: (payload: {
     taskType: 'barcode_analysis' | 'ocr_analysis' | 'manual_analysis';
