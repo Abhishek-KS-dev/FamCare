@@ -973,7 +973,7 @@ export function ManualEntrySection({ selectedMember, onAnalysisComplete }: Manua
                     <div className="flex gap-2">
                       <input
                         type="number"
-                        step="0.01"
+                        step="any"
                         min="0.01"
                         required
                         value={amount}
@@ -1050,7 +1050,7 @@ export function ManualEntrySection({ selectedMember, onAnalysisComplete }: Manua
                           <label className="block text-[11px] text-[#5A6E62] mb-1">{f.label}</label>
                           <input
                             type="number"
-                            step="0.01"
+                            step="any"
                             min="0"
                             value={f.val}
                             onChange={(e) => f.set(e.target.value)}
